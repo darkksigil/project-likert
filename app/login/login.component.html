@@ -1,0 +1,39 @@
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="brand-icon">⚡</div>
+      <div>
+        <div class="brand-name">Duty<span>Tracker</span></div>
+        <div class="brand-sub">IMISS Help Desk System</div>
+      </div>
+    </div>
+
+    <h2 class="login-title">Sign in to continue</h2>
+
+    @if (error) {
+      <div class="form-error">{{ error }}</div>
+    }
+
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input id="username" type="text" [(ngModel)]="username"
+             placeholder="Enter your username"
+             (keyup.enter)="submit()" />
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input id="password" type="password" [(ngModel)]="password"
+             placeholder="Enter your password"
+             (keyup.enter)="submit()" />
+    </div>
+
+    <button class="btn-login" [disabled]="loading" (click)="submit()">
+      @if (loading) {
+        <div class="spinner"></div> Signing in...
+      } @else {
+        Sign In
+      }
+    </button>
+  </div>
+</div>
