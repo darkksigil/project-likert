@@ -23,37 +23,38 @@
         <div class="form-row">
           <div class="form-group">
             <label>Department <span class="required">*</span></label>
-            <select [(ngModel)]="department" class="dept-select" [class.has-value]="department">
-              <option value="" disabled selected hidden>Select department . . .</option>
-              @for (grp of groupKeys; track grp) {
-                <optgroup [label]="'── ' + grp + ' ──'">
-                  @for (dept of groupedDepts[grp]; track dept.id) {
-                    <option [value]="dept.code">{{ dept.name }}</option>
-                  }
-                </optgroup>
-              }
-            </select>
+
+            @if (deptLoading) {
+              <div class="dept-loading">Loading departments...</div>
+            } @else if (deptError() && !deptReady) {
+              <!-- Show error with retry button if fetch failed -->
+              <div class="dept-error-row">
+                <span class="dept-err-msg">{{ deptError() }}</span>
+                <button class="btn-retry" (click)="retryLoadDepts()">↻ Retry</button>
+              </div>
+            } @else {
+              <select [(ngModel)]="department" class="dept-select" [class.has-value]="department">
+                <option value="" disabled selected hidden>Select department . . .</option>
+                @for (grp of groupKeys; track grp) {
+                  <optgroup [label]="'── ' + grp + ' ──'">
+                    @for (dept of groupedDepts[grp]; track dept.id) {
+                      <option [value]="dept.code">{{ dept.name }}</option>
+                    }
+                  </optgroup>
+                }
+              </select>
+            }
           </div>
 
           <div class="form-group">
             <label>Concern Type <span class="required">*</span></label>
-
-            @if (isAdmin()) {
-              <!-- ✅ Admin can set freely -->
-              <select [(ngModel)]="concernType">
-                <option value="hardware">🔧 Hardware</option>
-                <option value="network">🌐 Network</option>
-                <option value="system">💻 System</option>
-                <option value="data">🗄 Data</option>
-                <option value="other">📋 Other</option>
-              </select>
-            } @else {
-              <!-- ✅ Regular users see their auto-assigned type (read-only) -->
-              <div class="auto-type-display">
-                <span class="concern-badge concern-auto">{{ autoAssignedType }}</span>
-                <span class="auto-type-note">Auto-assigned to your role</span>
-              </div>
-            }
+            <select [(ngModel)]="concernType" [class.has-value]="concernType">
+              <option value="hardware">🔧 Hardware</option>
+              <option value="network">🌐 Network</option>
+              <option value="system">💻 System</option>
+              <option value="data">🗄 Data</option>
+              <option value="other">📋 Other</option>
+            </select>
           </div>
         </div>
 

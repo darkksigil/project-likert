@@ -30,6 +30,25 @@ export interface CreateDutyPayload {
   concernType: ConcernType;
 }
 
+export interface UpdateDutyPayload {
+  name?:       string;
+  department?: string;
+  concern?:    string;
+  localNum?:   string;
+  concernType?: ConcernType;
+}
+
+export interface ActivityLog {
+  id:         number;
+  duty_id:    number;
+  action:     string;       // 'status_change' | 'edit' | 'delete'
+  from_value: string | null;
+  to_value:   string | null;
+  actor_name: string;
+  actor_role: string;
+  created_at: string;
+}
+
 export interface User {
   id:         number;
   username:   string;

@@ -3,15 +3,23 @@ import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs';
 import { User, Department } from '../models/index';
+import { DepartmentService } from './department.service';
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private readonly API = 'http://localhost:3000/api';
 
-  users       = signal<User[]>([]);
-  departments = signal<Department[]>([]);
+  users = signal<User[]>([]);
 
-  constructor(private http: HttpClient) {}
+  // ✅ Delegate departments to DepartmentService so it's shared with modal
+
+  constructor(
+    private http: HttpClient,
+    private deptService: DepartmentService
+  ) {}
+
+  // Expose departments signal directly from DepartmentService
+  get departmentsSignal() { return this.deptService.departments; }
 
   // ── Users ──
   fetchUsers() {
@@ -38,22 +46,18 @@ export class AdminService {
     );
   }
 
-  // ── Departments ──
-  fetchDepartments() {
-    return this.http.get<Department[]>(`${this.API}/departments`).pipe(
-      tap(d => this.departments.set(d))
-    );
-  }
+  // ── Departments (delegated to DepartmentService) ──
+  fetchDepartments() { return this.deptService.fetchDepartments(); }
 
   createDepartment(data: { code: string; name: string; grp: string }) {
     return this.http.post<Department>(`${this.API}/departments`, data).pipe(
-      tap(d => this.departments.update(list => [...list, d]))
+      tap(d => this.deptService.departments.update(list => [...list, d]))
     );
   }
 
   deleteDepartment(id: number) {
     return this.http.delete(`${this.API}/departments/${id}`).pipe(
-      tap(() => this.departments.update(list => list.filter(d => d.id !== id)))
+      tap(() => this.deptService.departments.update(list => list.filter(d => d.id !== id)))
     );
   }
 }

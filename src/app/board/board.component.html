@@ -2,8 +2,42 @@
 
 <main class="main">
   <div class="board-header">
-    <h1 class="board-title">Duty Board</h1>
-    <span class="board-subtitle">// real-time request tracker</span>
+    <div class="board-title-row">
+      <div>
+        <h1 class="board-title">dashboard</h1>
+        <span class="board-subtitle">// real-time request tracker</span>
+      </div>
+    </div>
+
+    <!-- ── SEARCH + FILTER BAR ── -->
+    <div class="board-controls">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search name, department, concern..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)" />
+        @if (searchQuery()) {
+          <button class="search-clear" (click)="clearSearch()">✕</button>
+        }
+      </div>
+
+      <div class="filter-tabs">
+        @if (isAdmin()) {
+          <button class="filter-tab" [class.active]="activeConcernFilter() === 'all'"
+                  (click)="setFilter('all')">All</button>
+        }
+        @for (entry of concernTypes; track entry[0]) {
+          <button class="filter-tab filter-{{ entry[0] }}"
+                  [class.active]="activeConcernFilter() === entry[0]"
+                  (click)="setFilter(entry[0])">
+            {{ concernIcons[entry[0]] }} {{ entry[1] }}
+          </button>
+        }
+      </div>
+    </div>
   </div>
 
   <div class="board">
@@ -23,7 +57,10 @@
             </div>
           }
         } @else if (pending().length === 0) {
-          <div class="empty-state"><div class="empty-icon">◷</div><span>No pending requests</span></div>
+          <div class="empty-state">
+            <div class="empty-icon">◷</div>
+            <span>{{ searchQuery() ? 'No results found' : 'No pending requests' }}</span>
+          </div>
         } @else {
           @for (duty of pending(); track duty.id) { <app-duty-card [duty]="duty" /> }
         }
@@ -46,7 +83,10 @@
             </div>
           }
         } @else if (inProgress().length === 0) {
-          <div class="empty-state"><div class="empty-icon">◎</div><span>No active requests</span></div>
+          <div class="empty-state">
+            <div class="empty-icon">◎</div>
+            <span>{{ searchQuery() ? 'No results found' : 'No active requests' }}</span>
+          </div>
         } @else {
           @for (duty of inProgress(); track duty.id) { <app-duty-card [duty]="duty" /> }
         }
@@ -66,7 +106,10 @@
             <div class="skel-line" style="height:14px;width:70%"></div>
           </div>
         } @else if (done().length === 0) {
-          <div class="empty-state"><div class="empty-icon">✓</div><span>No completed requests</span></div>
+          <div class="empty-state">
+            <div class="empty-icon">✓</div>
+            <span>{{ searchQuery() ? 'No results found' : 'No completed requests' }}</span>
+          </div>
         } @else {
           @for (duty of done(); track duty.id) { <app-duty-card [duty]="duty" /> }
         }
@@ -76,3 +119,6 @@
 </main>
 
 <app-add-duty-modal [(isOpen)]="modalOpen" />
+
+<!-- ✅ Undo snackbar stack -->
+<app-snackbar />

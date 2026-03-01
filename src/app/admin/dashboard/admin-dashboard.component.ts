@@ -1,3 +1,4 @@
+// src/app/admin/dashboard/admin-dashboard.component.ts
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -23,16 +24,18 @@ export class AdminDashboardComponent implements OnInit {
   roles       = ['administrative','hardware','system','data','cybersecurity'] as const;
 
   users       = this.adminService.users;
-  departments = this.adminService.departments;
+  departments = this.adminService.departmentsSignal;
   duties      = this.dutyService.duties;
   currentUser = this.auth.currentUser;
 
+  // ── User form ──
   showUserForm  = false;
   editingUser: User | null = null;
   userForm = { username: '', password: '', full_name: '', role: 'hardware' };
   userError = '';
   userLoading = false;
 
+  // ── Department form ──
   showDeptForm = false;
   deptForm = { code: '', name: '', grp: '' };
   deptError = '';
@@ -44,6 +47,7 @@ export class AdminDashboardComponent implements OnInit {
     this.dutyService.fetchAll().subscribe();
   }
 
+  // ── Stats ──
   get totalDuties()    { return this.duties().length; }
   get pendingDuties()  { return this.dutyService.pending().length; }
   get activeDuties()   { return this.dutyService.inProgress().length; }
@@ -51,6 +55,7 @@ export class AdminDashboardComponent implements OnInit {
   get activeUsers()    { return this.users().filter(u => u.is_active).length; }
   get totalDepts()     { return this.departments().length; }
 
+  // ── User actions ──
   openCreateUser() {
     this.editingUser = null;
     this.userForm    = { username: '', password: '', full_name: '', role: 'hardware' };
@@ -93,6 +98,7 @@ export class AdminDashboardComponent implements OnInit {
     this.adminService.deleteUser(user.id).subscribe();
   }
 
+  // ── Department actions ──
   openCreateDept() {
     this.deptForm    = { code: '', name: '', grp: '' };
     this.deptError   = '';

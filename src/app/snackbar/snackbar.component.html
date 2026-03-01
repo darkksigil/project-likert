@@ -1,0 +1,13 @@
+<div class="snackbar-container">
+  @for (snack of snackbars(); track snack.id) {
+    <div class="snackbar">
+      <div class="snack-progress" [style.width.%]="(snack.remaining / 10) * 100"></div>
+      <div class="snack-body">
+        <span class="snack-msg">{{ snack.message }}</span>
+        <span class="snack-timer">{{ snack.remaining }}s</span>
+        <button class="snack-undo" (click)="undo(snack.id)">↩ Undo</button>
+        <button class="snack-dismiss" (click)="dismiss(snack.id)">✕</button>
+      </div>
+    </div>
+  }
+</div>
