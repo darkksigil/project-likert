@@ -1,0 +1,151 @@
+<!-- ── EDIT MODE ── -->
+@if (editing()) {
+  <div class="card card-editing">
+    <div class="card-edit-header">
+      <span class="card-id">{{ formattedId }} <span class="edit-badge">✎ Editing</span></span>
+      <button class="btn-card-x" (click)="cancelEdit()" title="Cancel edit">✕</button>
+    </div>
+
+    <div class="edit-fields">
+      <div class="edit-row">
+        <div class="form-group">
+          <label>Full Name <span class="optional">(optional)</span></label>
+          <input type="text" [ngModel]="editName()" (ngModelChange)="editName.set($event)" placeholder="e.g. Juan dela Cruz" />
+        </div>
+        <div class="form-group">
+          <label>Local No. <span class="optional">(optional)</span></label>
+          <input type="text" [ngModel]="editLocal()" (ngModelChange)="editLocal.set($event)" placeholder="e.g. 1012" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Department <span class="required">*</span></label>
+        <select [ngModel]="editDept()" (ngModelChange)="editDept.set($event)" class="dept-select" [class.has-value]="editDept()">
+          <option value="" disabled>Select department...</option>
+          @for (grp of groupKeys; track grp) {
+            <optgroup [label]="'── ' + grp + ' ──'">
+              @for (dept of groupedDepts[grp]; track dept.id) {
+                <option [value]="dept.code">{{ dept.name }}</option>
+              }
+            </optgroup>
+          }
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Concern Type</label>
+        <select [ngModel]="editType()" (ngModelChange)="editType.set($event)" [class.has-value]="editType()">
+          <option value="hardware">🔧 Hardware</option>
+          <option value="network">🌐 Network</option>
+          <option value="system">💻 System</option>
+          <option value="data">🗄 Data</option>
+          <option value="other">📋 Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Concern <span class="required">*</span></label>
+        <textarea [ngModel]="editConcern()" (ngModelChange)="editConcern.set($event)" placeholder="Describe the issue..."></textarea>
+      </div>
+    </div>
+
+    <div class="edit-actions">
+      <button class="btn-status btn-cancel" (click)="cancelEdit()">Cancel</button>
+      <button class="btn-edit-save" [disabled]="saving() || !editDept() || !editConcern().trim()" (click)="saveEdit()">
+        @if (saving()) { <div class="spinner spinner-sm"></div> Saving... }
+        @else { ✓ Save }
+      </button>
+    </div>
+  </div>
+
+} @else {
+
+  <!-- ── NORMAL VIEW ── -->
+  <div class="card">
+    <!-- ✅ X button top-right -->
+    <button class="btn-card-x" (click)="remove()" title="Remove request">✕</button>
+
+    <div class="card-id">
+      {{ formattedId }}
+      <span class="status-badge badge-{{ duty().status }}">
+        {{ duty().status === 'in_progress' ? 'In Progress' : (duty().status | titlecase) }}
+      </span>
+      <span class="concern-badge" [style.background]="concernColor + '20'" [style.color]="concernColor">
+        {{ concernLabel }}
+      </span>
+    </div>
+
+    <div class="card-name">{{ displayName }}</div>
+    @if (showDept) { <div class="card-dept">{{ duty().data.department }}</div> }
+    <div class="card-concern">{{ duty().data.concern }}</div>
+
+    <div class="card-meta">
+      <span class="card-local">📞 {{ duty().data.localNum }}</span>
+      <span class="card-time">{{ formattedTime }}</span>
+    </div>
+
+    <!-- Admin reassign panel -->
+    @if (isAdmin() && reassigning()) {
+      <div class="reassign-panel">
+        <select [ngModel]="selectedType()" (ngModelChange)="selectedType.set($event)">
+          @for (type of concernTypes; track type) {
+            <option [value]="type">{{ concernLabels[type] }}</option>
+          }
+        </select>
+        <button class="btn-status btn-done" (click)="confirmReassign()">✓</button>
+        <button class="btn-status btn-cancel" (click)="reassigning.set(false)">✕</button>
+      </div>
+    }
+
+    <div class="card-actions">
+      @switch (duty().status) {
+        @case ('pending') {
+          <button class="btn-status btn-progress" (click)="moveTo('in_progress')">▶ In Progress</button>
+          <button class="btn-status btn-done"     (click)="moveTo('done')">✓ Done</button>
+        }
+        @case ('in_progress') {
+          <button class="btn-status btn-pending"  (click)="moveTo('pending')">↩ Pending</button>
+          <button class="btn-status btn-done"     (click)="moveTo('done')">✓ Done</button>
+        }
+        @case ('done') {
+          <button class="btn-status btn-pending"  (click)="moveTo('pending')">↩ Reopen</button>
+        }
+      }
+
+      <!-- ✅ Edit button — all users -->
+      <button class="btn-status btn-edit-card" (click)="startEdit()" title="Edit details">✎ Edit</button>
+
+      @if (isAdmin()) {
+        <button class="btn-status btn-reassign" (click)="openReassign()">⇄ Type</button>
+      }
+
+      <!-- ✅ Activity log toggle -->
+      <button class="btn-status btn-log" (click)="toggleLog()" title="Activity log">
+        {{ showLog() ? '▲ Log' : '▼ Log' }}
+      </button>
+    </div>
+
+    <!-- ✅ Activity log panel -->
+    @if (showLog()) {
+      <div class="activity-log">
+        <div class="log-title">Activity Log</div>
+        @if (logLoading()) {
+          <div class="log-loading">Loading...</div>
+        } @else if (logItems().length === 0) {
+          <div class="log-empty">No activity yet.</div>
+        } @else {
+          @for (log of logItems(); track log.id) {
+            <div class="log-item">
+              <div class="log-dot" [class]="'log-dot-' + log.action"></div>
+              <div class="log-content">
+                <span class="log-actor">{{ log.actor_name }}</span>
+                <span class="log-action">{{ logActionLabel(log) }}</span>
+                <span class="log-time">{{ formatLogTime(log.created_at) }}</span>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    }
+  </div>
+}

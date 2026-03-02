@@ -1,0 +1,76 @@
+@if (isOpen()) {
+  <div class="modal-overlay" (click)="onOverlayClick($event)">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">New Request</h2>
+        <button class="modal-close" (click)="close()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        @if (error) { <div class="form-error">{{ error }}</div> }
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Full Name <span class="optional">(optional)</span></label>
+            <input type="text" [(ngModel)]="name" placeholder="e.g. Juan dela Cruz" />
+          </div>
+          <div class="form-group">
+            <label>Local No. <span class="optional">(optional)</span></label>
+            <input type="text" [(ngModel)]="localNum" placeholder="e.g. 1012" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Department <span class="required">*</span></label>
+
+            @if (deptLoading) {
+              <div class="dept-loading">Loading departments...</div>
+            } @else if (deptError() && !deptReady) {
+              <!-- Show error with retry button if fetch failed -->
+              <div class="dept-error-row">
+                <span class="dept-err-msg">{{ deptError() }}</span>
+                <button class="btn-retry" (click)="retryLoadDepts()">↻ Retry</button>
+              </div>
+            } @else {
+              <select [(ngModel)]="department" class="dept-select" [class.has-value]="department">
+                <option value="" disabled selected hidden>Select department . . .</option>
+                @for (grp of groupKeys; track grp) {
+                  <optgroup [label]="'── ' + grp + ' ──'">
+                    @for (dept of groupedDepts[grp]; track dept.id) {
+                      <option [value]="dept.code">{{ dept.name }}</option>
+                    }
+                  </optgroup>
+                }
+              </select>
+            }
+          </div>
+
+          <div class="form-group">
+            <label>Concern Type <span class="required">*</span></label>
+            <select [(ngModel)]="concernType" [class.has-value]="concernType">
+              <option value="hardware">🔧 Hardware</option>
+              <option value="network">🌐 Network</option>
+              <option value="system">💻 System</option>
+              <option value="data">🗄 Data</option>
+              <option value="other">📋 Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Concern <span class="required">*</span></label>
+          <textarea [(ngModel)]="concern" placeholder="Describe the issue or request..."></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-modal-cancel" (click)="close()">Cancel</button>
+        <button class="btn-submit" [disabled]="loading || !isValid" (click)="submit()">
+          @if (loading) { <div class="spinner"></div> Submitting... }
+          @else { Submit Request }
+        </button>
+      </div>
+    </div>
+  </div>
+}

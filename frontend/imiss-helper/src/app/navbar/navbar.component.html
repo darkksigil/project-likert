@@ -1,0 +1,31 @@
+<nav class="navbar">
+  <div class="navbar-brand">
+    <div class="brand-icon">⚡</div>
+    <span class="brand-text">IMISS<span>Tracker</span></span>
+  </div>
+
+  <div class="navbar-right">
+    <div class="stats-pill">
+      <div class="stat-item"><div class="stat-dot pending"></div><span>{{ pendingCount() }}</span></div>
+      <div class="stat-item"><div class="stat-dot progress"></div><span>{{ progressCount() }}</span></div>
+      <div class="stat-item"><div class="stat-dot done"></div><span>{{ doneCount() }}</span></div>
+    </div>
+
+    @if (isAdmin()) {
+      <a class="btn-nav-link" routerLink="/admin">⚙ Admin</a>
+    }
+
+    <button class="btn-refresh" (click)="refresh()" [class.spinning]="refreshing" title="Refresh">↻</button>
+
+    <button class="btn-add" (click)="openModal.emit()">+ New Request</button>
+
+    <div class="user-pill">
+      <div class="user-avatar">{{ currentUser()?.username?.charAt(0)?.toUpperCase() }}</div>
+      <div class="user-info">
+        <div class="user-name">{{ currentUser()?.username }}</div>
+        <div class="user-role">{{ currentUser()?.role }}</div>
+      </div>
+      <button class="btn-logout" (click)="logout()" title="Logout">🔻</button>
+    </div>
+  </div>
+</nav>
