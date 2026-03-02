@@ -3,9 +3,8 @@
   <div class="card card-editing">
     <div class="card-edit-header">
       <span class="card-id">{{ formattedId }} <span class="edit-badge">✎ Editing</span></span>
-      <button class="btn-card-x" (click)="cancelEdit()" title="Cancel edit">✕</button>
+      <button class="btn-card-x" (click)="cancelEdit()">✕</button>
     </div>
-
     <div class="edit-fields">
       <div class="edit-row">
         <div class="form-group">
@@ -17,7 +16,6 @@
           <input type="text" [ngModel]="editLocal()" (ngModelChange)="editLocal.set($event)" placeholder="e.g. 1012" />
         </div>
       </div>
-
       <div class="form-group">
         <label>Department <span class="required">*</span></label>
         <select [ngModel]="editDept()" (ngModelChange)="editDept.set($event)" class="dept-select" [class.has-value]="editDept()">
@@ -31,7 +29,6 @@
           }
         </select>
       </div>
-
       <div class="form-group">
         <label>Concern Type</label>
         <select [ngModel]="editType()" (ngModelChange)="editType.set($event)" [class.has-value]="editType()">
@@ -42,18 +39,15 @@
           <option value="other">📋 Other</option>
         </select>
       </div>
-
       <div class="form-group">
         <label>Concern <span class="required">*</span></label>
         <textarea [ngModel]="editConcern()" (ngModelChange)="editConcern.set($event)" placeholder="Describe the issue..."></textarea>
       </div>
     </div>
-
     <div class="edit-actions">
       <button class="btn-status btn-cancel" (click)="cancelEdit()">Cancel</button>
       <button class="btn-edit-save" [disabled]="saving() || !editDept() || !editConcern().trim()" (click)="saveEdit()">
-        @if (saving()) { <div class="spinner spinner-sm"></div> Saving... }
-        @else { ✓ Save }
+        @if (saving()) { <div class="spinner spinner-sm"></div> Saving... } @else { ✓ Save }
       </button>
     </div>
   </div>
@@ -62,9 +56,24 @@
 
   <!-- ── NORMAL VIEW ── -->
   <div class="card">
-    <!-- ✅ X button top-right -->
-    <button class="btn-card-x" (click)="remove()" title="Remove request">✕</button>
 
+    <!-- Top actions: ⋮ menu + ✕ -->
+    <div class="card-top-actions">
+      <div class="card-menu-wrap">
+        <button class="btn-card-dots" (click)="toggleMenu()">⋮</button>
+        @if (menuOpen()) {
+          <div class="card-menu">
+            <button class="card-menu-item" (click)="startEdit(); menuOpen.set(false)">✎ Edit</button>
+            <button class="card-menu-item" (click)="toggleLog(); menuOpen.set(false)">
+              {{ showLog() ? '▲ Hide Log' : '▼ Activity Log' }}
+            </button>
+          </div>
+        }
+      </div>
+      <button class="btn-card-x" (click)="remove()">✕</button>
+    </div>
+
+    <!-- ID + badges row -->
     <div class="card-id">
       {{ formattedId }}
       <span class="status-badge badge-{{ duty().status }}">
@@ -75,60 +84,50 @@
       </span>
     </div>
 
+    <!-- Name / dept hierarchy -->
     <div class="card-name">{{ displayName }}</div>
     @if (showDept) { <div class="card-dept">{{ duty().data.department }}</div> }
+
+    <!-- Concern description -->
     <div class="card-concern">{{ duty().data.concern }}</div>
 
-    <div class="card-meta">
-      <span class="card-local">📞 {{ duty().data.localNum }}</span>
-      <span class="card-time">{{ formattedTime }}</span>
-    </div>
-
-    <!-- Admin reassign panel -->
-    @if (isAdmin() && reassigning()) {
-      <div class="reassign-panel">
-        <select [ngModel]="selectedType()" (ngModelChange)="selectedType.set($event)">
-          @for (type of concernTypes; track type) {
-            <option [value]="type">{{ concernLabels[type] }}</option>
-          }
-        </select>
-        <button class="btn-status btn-done" (click)="confirmReassign()">✓</button>
-        <button class="btn-status btn-cancel" (click)="reassigning.set(false)">✕</button>
+    <!-- Metadata group -->
+    <div class="card-meta-group">
+      <div class="card-meta-row">
+        <span class="card-meta-label">📞</span>
+        <span class="card-meta-value">{{ duty().data.localNum }}</span>
       </div>
-    }
-
-    <div class="card-actions">
-      @switch (duty().status) {
-        @case ('pending') {
-          <button class="btn-status btn-progress" (click)="moveTo('in_progress')">▶ In Progress</button>
-          <button class="btn-status btn-done"     (click)="moveTo('done')">✓ Done</button>
-        }
-        @case ('in_progress') {
-          <button class="btn-status btn-pending"  (click)="moveTo('pending')">↩ Pending</button>
-          <button class="btn-status btn-done"     (click)="moveTo('done')">✓ Done</button>
-        }
-        @case ('done') {
-          <button class="btn-status btn-pending"  (click)="moveTo('pending')">↩ Reopen</button>
-        }
+      <div class="card-meta-row">
+        <span class="card-meta-label">🗓</span>
+        <span class="card-meta-value">{{ formattedSubmitted }}</span>
+      </div>
+      <div class="card-meta-row">
+        <span class="card-meta-label">⏱</span>
+        <span class="card-meta-value" [class]="urgencyClass()">
+          {{ timeAgo() }}
+        </span>
+      </div>
+      @if (lastUpdatedLabel) {
+        <div class="card-meta-row card-last-updated">
+          <span class="card-meta-label">✍</span>
+          <span class="card-meta-value">{{ lastUpdatedLabel }}</span>
+        </div>
       }
-
-      <!-- ✅ Edit button — all users -->
-      <button class="btn-status btn-edit-card" (click)="startEdit()" title="Edit details">✎ Edit</button>
-
-      @if (isAdmin()) {
-        <button class="btn-status btn-reassign" (click)="openReassign()">⇄ Type</button>
-      }
-
-      <!-- ✅ Activity log toggle -->
-      <button class="btn-status btn-log" (click)="toggleLog()" title="Activity log">
-        {{ showLog() ? '▲ Log' : '▼ Log' }}
-      </button>
     </div>
 
-    <!-- ✅ Activity log panel -->
+    <!-- ✅ Single context action button — full width -->
+    <button
+      class="btn-primary-action {{ primaryAction.cls }}"
+      [disabled]="actionLoading()"
+      (click)="triggerAction()">
+      @if (actionLoading()) { <div class="spinner spinner-sm"></div> }
+      @else { {{ primaryAction.label }} }
+    </button>
+
+    <!-- Activity log panel -->
     @if (showLog()) {
       <div class="activity-log">
-        <div class="log-title">Activity Log</div>
+        <div class="log-title">Activity Timeline</div>
         @if (logLoading()) {
           <div class="log-loading">Loading...</div>
         } @else if (logItems().length === 0) {
@@ -138,9 +137,9 @@
             <div class="log-item">
               <div class="log-dot" [class]="'log-dot-' + log.action"></div>
               <div class="log-content">
-                <span class="log-actor">{{ log.actor_name }}</span>
-                <span class="log-action">{{ logActionLabel(log) }}</span>
                 <span class="log-time">{{ formatLogTime(log.created_at) }}</span>
+                <span class="log-action">{{ logActionLabel(log) }}</span>
+                <span class="log-actor">by {{ log.actor_name }}</span>
               </div>
             </div>
           }

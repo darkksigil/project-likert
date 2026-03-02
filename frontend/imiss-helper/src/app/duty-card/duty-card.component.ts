@@ -1,31 +1,37 @@
 // src/app/duty-card/duty-card.component.ts
-import { Component, inject, input, signal, computed } from '@angular/core';
+import { Component, inject, input, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Duty, DutyStatus, ConcernType, ActivityLog, CONCERN_TYPE_LABELS, CONCERN_TYPE_COLORS } from '../shared/models/index';
+import {
+  Duty, DutyStatus, ConcernType, ActivityLog,
+  CONCERN_TYPE_LABELS, CONCERN_TYPE_COLORS
+} from '../shared/models/index';
 import { DutyService } from '../shared/services/duty.service';
 import { AuthService } from '../shared/services/auth.service';
 import { DepartmentService } from '../shared/services/department.service';
 import { Department } from '../shared/models/index';
+import { TimeAgoPipe, UrgencyClassPipe, formatTimeAgo } from '../shared/pipes/time-ago.pipes';
+
+// Shared tick — updates once per minute for ALL cards, not per card
+let _tick = signal(0);
+setInterval(() => _tick.update(v => v + 1), 60000);
 
 @Component({
   selector: 'app-duty-card',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TimeAgoPipe, UrgencyClassPipe],
   templateUrl: './duty-card.component.html',
 })
 export class DutyCardComponent {
   duty = input.required<Duty>();
 
-  private dutyService  = inject(DutyService);
-  private auth         = inject(AuthService);
-  private deptService  = inject(DepartmentService);
+  private dutyService = inject(DutyService);
+  private auth        = inject(AuthService);
+  private deptService = inject(DepartmentService);
 
-  isAdmin       = this.auth.isAdmin;
-  reassigning   = signal(false);
-  selectedType  = signal<ConcernType>('other');
-  concernTypes  = Object.keys(CONCERN_TYPE_LABELS) as ConcernType[];
-  concernLabels = CONCERN_TYPE_LABELS;
+  isAdmin      = this.auth.isAdmin;
+  menuOpen     = signal(false);
+  actionLoading = signal(false);
 
   // ── Edit mode ──
   editing     = signal(false);
@@ -50,33 +56,70 @@ export class DutyCardComponent {
   get groupKeys(): string[] { return Object.keys(this.groupedDepts); }
 
   // ── Activity log ──
-  showLog  = signal(false);
-  logItems = signal<ActivityLog[]>([]);
+  showLog    = signal(false);
+  logItems   = signal<ActivityLog[]>([]);
   logLoading = signal(false);
 
-  get displayName(): string {
-    return this.duty().data.name?.trim() || this.duty().data.department;
-  }
-  get showDept(): boolean  { return !!this.duty().data.name?.trim(); }
-  get formattedId(): string { return '#' + String(this.duty().id).padStart(4, '0'); }
-  get formattedTime(): string {
-    const d = new Date(this.duty().created_at);
-    return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' +
-           d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }
+  // ── Derived ──
+  get displayName(): string  { return this.duty().data.name?.trim() || this.duty().data.department; }
+  get showDept(): boolean    { return !!this.duty().data.name?.trim(); }
+  get formattedId(): string  { return '#' + String(this.duty().id).padStart(4, '0'); }
   get concernLabel(): string { return CONCERN_TYPE_LABELS[this.duty().concern_type] ?? 'Other'; }
   get concernColor(): string { return CONCERN_TYPE_COLORS[this.duty().concern_type] ?? '#6B7280'; }
 
-  moveTo(status: DutyStatus) {
-    this.dutyService.updateStatus(this.duty().id, status).subscribe();
+  // ── Refreshes every 60s via shared tick, not on every CD cycle ──
+  timeAgo     = computed(() => { _tick(); return formatTimeAgo(this.duty().created_at); });
+  urgencyClass = computed(() => {
+    _tick();
+    const diffH = (Date.now() - new Date(this.duty().created_at).getTime()) / 3600000;
+    if (diffH > 24) return 'urgency-red';
+    if (diffH > 8)  return 'urgency-yellow';
+    return 'urgency-normal';
+  });
+
+  get formattedSubmitted(): string {
+    const d = new Date(this.duty().created_at);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' – ' +
+           d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   }
 
-  // ✅ X button → undo snackbar
-  remove() {
-    this.dutyService.deleteWithUndo(this.duty());
+  get lastUpdatedLabel(): string | null {
+    const d = this.duty();
+    if (!d.updated_at || !d.created_by_name) return null;
+    const t = new Date(d.updated_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    return `${d.created_by_name} – ${t}`;
   }
 
-  // ✅ Edit mode — all users
+  // ── Context-based single action ──
+  get primaryAction(): { label: string; next: DutyStatus; cls: string } {
+    switch (this.duty().status) {
+      case 'pending':     return { label: '▶ Start Work',    next: 'in_progress', cls: 'btn-primary-progress' };
+      case 'in_progress': return { label: '✓ Mark as Done',  next: 'done',        cls: 'btn-primary-done'     };
+      default:            return { label: '↩ Reopen',        next: 'pending',     cls: 'btn-primary-reopen'   };
+    }
+  }
+
+  triggerAction() {
+    this.actionLoading.set(true);
+    this.dutyService.updateStatus(this.duty().id, this.primaryAction.next).subscribe({
+      next:  () => this.actionLoading.set(false),
+      error: () => this.actionLoading.set(false),
+    });
+  }
+
+  remove() { this.dutyService.deleteWithUndo(this.duty()); }
+
+  toggleMenu() { this.menuOpen.update(v => !v); }
+
+  // Close menu on outside click
+  @HostListener('document:click', ['$event'])
+  onDocClick(e: MouseEvent) {
+    if (!(e.target as HTMLElement).closest('.card-menu-wrap')) {
+      this.menuOpen.set(false);
+    }
+  }
+
+  // ── Edit ──
   startEdit() {
     const d = this.duty();
     this.editName.set(d.data.name ?? '');
@@ -93,10 +136,8 @@ export class DutyCardComponent {
     if (!this.editDept() || !this.editConcern().trim()) return;
     this.saving.set(true);
     this.dutyService.update(this.duty().id, {
-      name:        this.editName().trim(),
-      department:  this.editDept(),
-      concern:     this.editConcern().trim(),
-      localNum:    this.editLocal().trim() || 'N/A',
+      name: this.editName().trim(), department: this.editDept(),
+      concern: this.editConcern().trim(), localNum: this.editLocal().trim() || 'N/A',
       concernType: this.editType(),
     }).subscribe({
       next:  () => { this.saving.set(false); this.editing.set(false); },
@@ -104,7 +145,7 @@ export class DutyCardComponent {
     });
   }
 
-  // ✅ Activity log toggle
+  // ── Activity log ──
   toggleLog() {
     if (this.showLog()) { this.showLog.set(false); return; }
     this.showLog.set(true);
@@ -117,28 +158,14 @@ export class DutyCardComponent {
 
   formatLogTime(ts: string): string {
     const d = new Date(ts);
-    return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' +
-           d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' – ' +
+           d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   }
 
   logActionLabel(log: ActivityLog): string {
-    if (log.action === 'status_change') {
-      return `${log.from_value} → ${log.to_value}`;
-    }
-    if (log.action === 'edit') return 'Edited details';
+    if (log.action === 'status_change') return `${log.from_value} → ${log.to_value}`;
+    if (log.action === 'edit')   return 'Edited details';
     if (log.action === 'delete') return 'Deleted';
     return log.action;
-  }
-
-  // ── Admin reassign ──
-  openReassign() {
-    this.selectedType.set(this.duty().concern_type ?? 'other');
-    this.reassigning.set(true);
-  }
-
-  confirmReassign() {
-    this.dutyService.updateConcernType(this.duty().id, this.selectedType()).subscribe({
-      next: () => this.reassigning.set(false)
-    });
   }
 }

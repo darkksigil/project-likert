@@ -1,0 +1,31 @@
+<div class="column {{ config.cls }}">
+  <div class="column-header">
+    <div class="column-title">
+      <div class="col-indicator"></div>
+      {{ title() }}
+    </div>
+    <span class="col-count">{{ duties().length }}</span>
+  </div>
+
+  <div class="column-body">
+    @if (loading()) {
+      @for (s of config.skeletons; track s) {
+        <div class="skeleton-card">
+          <div class="skel-line" style="height:10px;width:40%"></div>
+          <div class="skel-line" style="height:14px;width:70%"></div>
+          <div class="skel-line" style="height:10px;width:55%"></div>
+          <div class="skel-line" style="height:36px;width:100%;margin-top:8px"></div>
+        </div>
+      }
+    } @else if (duties().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">{{ config.emptyIcon }}</div>
+        <span>{{ emptyText }}</span>
+      </div>
+    } @else {
+      @for (duty of duties(); track duty.id) {
+        <app-duty-card [duty]="duty" />
+      }
+    }
+  </div>
+</div>

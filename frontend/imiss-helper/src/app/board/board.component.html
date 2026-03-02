@@ -5,120 +5,68 @@
     <div class="board-title-row">
       <div>
         <h1 class="board-title">dashboard</h1>
-        <span class="board-subtitle">// real-time request tracker</span>
+        <div class="board-subtitle-row">
+          <span class="board-subtitle">// real-time request tracker</span>
+          <span class="board-date">{{ today }}</span>
+        </div>
       </div>
     </div>
 
     <!-- ── SEARCH + FILTER BAR ── -->
     <div class="board-controls">
+
+      <!-- Search -->
       <div class="search-box">
         <span class="search-icon">🔍</span>
         <input
           type="text"
           class="search-input"
-          placeholder="Search name, department, concern..."
+          placeholder="Search request, dept, ID..."
           [ngModel]="searchQuery()"
           (ngModelChange)="searchQuery.set($event)" />
         @if (searchQuery()) {
-          <button class="search-clear" (click)="clearSearch()">✕</button>
+          <button class="search-clear" (click)="searchQuery.set('')">✕</button>
         }
       </div>
 
-      <div class="filter-tabs">
-        @if (isAdmin()) {
-          <button class="filter-tab" [class.active]="activeConcernFilter() === 'all'"
-                  (click)="setFilter('all')">All</button>
-        }
+      <!-- Concern type filter dropdown -->
+      <select class="filter-select" [ngModel]="activeConcernFilter()" (ngModelChange)="setFilter($event)" [class.has-value]="activeConcernFilter() !== 'all'">
+        <option value="all">All Types</option>
         @for (entry of concernTypes; track entry[0]) {
-          <button class="filter-tab filter-{{ entry[0] }}"
-                  [class.active]="activeConcernFilter() === entry[0]"
-                  (click)="setFilter(entry[0])">
-            {{ concernIcons[entry[0]] }} {{ entry[1] }}
-          </button>
+          <option [value]="entry[0]">{{ concernIcons[entry[0]] }} {{ entry[1] }}</option>
         }
-      </div>
+      </select>
+
+      @if (hasSearch) {
+        <button class="btn-clear-filters" (click)="clearSearch()">✕ Clear</button>
+      }
     </div>
   </div>
 
+  <!-- ── KANBAN BOARD — board passes data, columns are dumb ── -->
   <div class="board">
-    <!-- PENDING -->
-    <div class="column col-pending">
-      <div class="column-header">
-        <div class="column-title"><div class="col-indicator"></div>Pending</div>
-        <span class="col-count">{{ pending().length }}</span>
-      </div>
-      <div class="column-body">
-        @if (loading()) {
-          @for (s of skeletons; track s) {
-            <div class="skeleton-card">
-              <div class="skel-line" style="height:10px;width:40%"></div>
-              <div class="skel-line" style="height:14px;width:70%"></div>
-              <div class="skel-line" style="height:32px;width:100%;margin-top:8px"></div>
-            </div>
-          }
-        } @else if (pending().length === 0) {
-          <div class="empty-state">
-            <div class="empty-icon">◷</div>
-            <span>{{ searchQuery() ? 'No results found' : 'No pending requests' }}</span>
-          </div>
-        } @else {
-          @for (duty of pending(); track duty.id) { <app-duty-card [duty]="duty" /> }
-        }
-      </div>
-    </div>
+    <app-request-column
+      [duties]="pending()"
+      status="pending"
+      title="Pending"
+      [loading]="loading()"
+      [searchActive]="hasSearch" />
 
-    <!-- IN PROGRESS -->
-    <div class="column col-progress">
-      <div class="column-header">
-        <div class="column-title"><div class="col-indicator"></div>In Progress</div>
-        <span class="col-count">{{ inProgress().length }}</span>
-      </div>
-      <div class="column-body">
-        @if (loading()) {
-          @for (s of [1,2]; track s) {
-            <div class="skeleton-card">
-              <div class="skel-line" style="height:10px;width:40%"></div>
-              <div class="skel-line" style="height:14px;width:70%"></div>
-              <div class="skel-line" style="height:32px;width:100%;margin-top:8px"></div>
-            </div>
-          }
-        } @else if (inProgress().length === 0) {
-          <div class="empty-state">
-            <div class="empty-icon">◎</div>
-            <span>{{ searchQuery() ? 'No results found' : 'No active requests' }}</span>
-          </div>
-        } @else {
-          @for (duty of inProgress(); track duty.id) { <app-duty-card [duty]="duty" /> }
-        }
-      </div>
-    </div>
+    <app-request-column
+      [duties]="inProgress()"
+      status="in_progress"
+      title="In Progress"
+      [loading]="loading()"
+      [searchActive]="hasSearch" />
 
-    <!-- DONE -->
-    <div class="column col-done">
-      <div class="column-header">
-        <div class="column-title"><div class="col-indicator"></div>Done</div>
-        <span class="col-count">{{ done().length }}</span>
-      </div>
-      <div class="column-body">
-        @if (loading()) {
-          <div class="skeleton-card">
-            <div class="skel-line" style="height:10px;width:40%"></div>
-            <div class="skel-line" style="height:14px;width:70%"></div>
-          </div>
-        } @else if (done().length === 0) {
-          <div class="empty-state">
-            <div class="empty-icon">✓</div>
-            <span>{{ searchQuery() ? 'No results found' : 'No completed requests' }}</span>
-          </div>
-        } @else {
-          @for (duty of done(); track duty.id) { <app-duty-card [duty]="duty" /> }
-        }
-      </div>
-    </div>
+    <app-request-column
+      [duties]="done()"
+      status="done"
+      title="Done"
+      [loading]="loading()"
+      [searchActive]="hasSearch" />
   </div>
 </main>
 
 <app-add-duty-modal [(isOpen)]="modalOpen" />
-
-<!-- ✅ Undo snackbar stack -->
 <app-snackbar />

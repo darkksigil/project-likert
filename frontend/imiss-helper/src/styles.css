@@ -366,7 +366,6 @@ select optgroup { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 
 /* ── X BUTTON ON CARD ── */
 .card { position: relative; }
 .btn-card-x {
-  position: absolute; top: 8px; right: 8px;
   width: 22px; height: 22px;
   background: transparent; border: 1px solid var(--border);
   border-radius: 50%; color: var(--text-light);
@@ -487,3 +486,205 @@ select optgroup { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 
   cursor: pointer; font-size: 0.75rem; padding: 2px 4px; transition: color 0.15s;
 }
 .snack-dismiss:hover { color: white; }
+/* ── BOARD DATE ── */
+.board-subtitle-row { display: flex; align-items: center; gap: 0.75rem; }
+.board-date {
+  font-size: 0.72rem; color: var(--text-muted);
+}
+
+/* ── THREE-DOT MENU ── */
+.card-top-actions {
+  position: absolute; top: 8px; right: 8px;
+  display: flex; align-items: center; gap: 4px;
+  flex-direction: row; /* dots left, X right */
+}
+.card-menu-wrap { position: relative; }
+.btn-card-dots {
+  width: 22px; height: 22px;
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 50%; color: var(--text-muted);
+  font-size: 0.85rem; cursor: pointer; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.btn-card-dots:hover { background: var(--bg); border-color: var(--accent); color: var(--accent); }
+.card-menu {
+  position: absolute; top: 26px; right: 0;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  min-width: 140px; z-index: 50; overflow: hidden;
+  animation: menuIn 0.15s ease;
+}
+@keyframes menuIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.card-menu-item {
+  display: block; width: 100%;
+  padding: 8px 14px; text-align: left;
+  background: none; border: none; cursor: pointer;
+  font-family: 'DM Mono', monospace; font-size: 0.74rem;
+  color: var(--text-sub); transition: background 0.1s;
+  white-space: nowrap;
+}
+.card-menu-item:hover { background: var(--surface2); color: var(--text); }
+
+/* ═══════════════════════════════════════════════
+   REFACTORED UX STYLES
+   Append these to the end of styles.css
+   ═══════════════════════════════════════════════ */
+
+/* ── CSS VARIABLE UPDATES (government-friendly tones) ── */
+:root {
+  --pending:       #B45309;   /* muted amber text */
+  --pending-bg:    #FEF3C7;
+  --pending-border:#FDE68A;
+  --progress:      #1E3A8A;   /* navy blue */
+  --progress-bg:   #DBEAFE;
+  --progress-border:#BFDBFE;
+  --done:          #166534;   /* soft green */
+  --done-bg:       #DCFCE7;
+  --done-border:   #BBF7D0;
+  --done-hover:    #15803D;
+  --progress-hover:#1E40AF;
+  --radius:        8px;       /* slightly tighter radius */
+}
+
+/* ── FILTER SELECT DROPDOWNS ── */
+.filter-select {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  padding: 7px 28px 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  appearance: auto;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  min-width: 120px;
+}
+.filter-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); outline: none; }
+.filter-select.has-value { color: var(--text); border-color: var(--accent); }
+
+.btn-clear-filters {
+  font-family: 'DM Mono', monospace; font-size: 0.72rem;
+  padding: 6px 12px; border-radius: 6px;
+  border: 1px solid var(--cancel-border);
+  background: var(--cancel-bg); color: var(--cancel-text);
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.btn-clear-filters:hover { background: var(--cancel-border); }
+
+/* ── CARD IMPROVEMENTS ── */
+.card {
+  padding: 1.1rem;
+  border-radius: 8px;
+}
+
+/* ── CARD METADATA GROUP ── */
+.card-meta-group {
+  display: flex; flex-direction: column; gap: 4px;
+  margin: 10px 0 14px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.card-meta-row {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.7rem; color: var(--text-muted);
+}
+.card-meta-label { font-size: 0.72rem; flex-shrink: 0; }
+.card-meta-value { color: var(--text-sub); }
+.card-last-updated { border-top: 1px solid var(--border); padding-top: 4px; margin-top: 2px; }
+.card-last-updated .card-meta-value { color: var(--text-muted); font-size: 0.67rem; }
+
+/* ── URGENCY TIME CLASSES ── */
+.urgency-red    { color: #DC2626 !important; font-weight: 600; }
+.urgency-yellow { color: #B45309 !important; font-weight: 600; }
+.urgency-normal { color: var(--text-muted); }
+
+/* ── CONTEXT ACTION BUTTON (full width, single) ── */
+.btn-primary-action {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; padding: 9px 16px;
+  border: none; border-radius: 7px; cursor: pointer;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.82rem;
+  transition: all 0.15s; margin-top: 2px;
+}
+.btn-primary-action:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn-primary-progress {
+  background: #1E3A8A; color: white;
+}
+.btn-primary-progress:hover:not(:disabled) { background: #1E40AF; }
+
+.btn-primary-done {
+  background: #166534; color: white;
+}
+.btn-primary-done:hover:not(:disabled) { background: #15803D; }
+
+.btn-primary-reopen {
+  background: transparent;
+  border: 1px solid #B45309 !important;
+  color: #92400E;
+}
+.btn-primary-reopen:hover:not(:disabled) { background: #FEF3C7; }
+
+/* ── STATUS BADGE UPDATES (muted tones) ── */
+.badge-pending     { background: #FEF3C7; color: #92400E; }
+.badge-in_progress { background: #DBEAFE; color: #1E3A8A; }
+.badge-done        { background: #DCFCE7; color: #166534; }
+
+/* ── ACTIVITY LOG TIMELINE ── */
+.log-item { padding: 5px 0; }
+.log-time   { font-size: 0.65rem; color: var(--text-light); margin-bottom: 1px; }
+.log-action { font-size: 0.72rem; color: var(--text); font-weight: 500; }
+.log-actor  { font-size: 0.67rem; color: var(--text-muted); }
+
+/* ── TOAST NOTIFICATIONS ── */
+.toast {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  animation: snackIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-size: 0.78rem;
+}
+.toast-success { background: #166534; color: white; }
+.toast-info    { background: #1E3A8A; color: white; }
+.toast-warning { background: #92400E; color: white; }
+.toast-error   { background: #991B1B; color: white; }
+.toast-icon    { font-size: 0.85rem; font-weight: 700; flex-shrink: 0; }
+.toast-msg     { flex: 1; }
+
+/* ── BOARD CONTROLS ALIGNMENT ── */
+.board-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: nowrap;
+  margin-bottom: 1.5rem;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+}
+
+.filter-select {
+  flex-shrink: 0;
+  width: 130px;
+}
+
+.btn-clear-filters {
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .board-controls { flex-wrap: wrap; }
+  .search-box     { width: 100%; }
+  .filter-select  { flex: 1; }
+}

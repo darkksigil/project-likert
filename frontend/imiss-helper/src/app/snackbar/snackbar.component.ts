@@ -1,7 +1,8 @@
 // src/app/snackbar/snackbar.component.ts
-import { Component, inject, OnDestroy, signal, effect } from '@angular/core';
+import { Component, inject, OnDestroy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DutyService, SnackbarItem } from '../shared/services/duty.service';
+import { DutyService } from '../shared/services/duty.service';
+import { NotificationService } from '../shared/services/notification.service';
 
 @Component({
   selector: 'app-snackbar',
@@ -11,13 +12,14 @@ import { DutyService, SnackbarItem } from '../shared/services/duty.service';
 })
 export class SnackbarComponent implements OnDestroy {
   dutyService = inject(DutyService);
-  snackbars   = this.dutyService.snackbars;
+  notif       = inject(NotificationService);
 
-  // Track countdown timers per snack
+  snackbars = this.dutyService.snackbars;
+  toasts    = this.notif.toasts;
+
   private countdownIntervals = new Map<number, any>();
 
   constructor() {
-    // Watch snackbars and start countdown intervals for new ones
     effect(() => {
       const current = this.snackbars();
       current.forEach(snack => {
@@ -33,8 +35,6 @@ export class SnackbarComponent implements OnDestroy {
           this.countdownIntervals.set(snack.id, interval);
         }
       });
-
-      // Clean up intervals for dismissed snacks
       this.countdownIntervals.forEach((interval, id) => {
         if (!current.find(s => s.id === id)) {
           clearInterval(interval);
@@ -45,21 +45,19 @@ export class SnackbarComponent implements OnDestroy {
   }
 
   undo(snackId: number) {
-    this.clearInterval(snackId);
+    this.clearCountdown(snackId);
     this.dutyService.undoDelete(snackId);
   }
 
   dismiss(snackId: number) {
-    this.clearInterval(snackId);
+    this.clearCountdown(snackId);
     this.dutyService.dismissSnack(snackId);
   }
 
-  private clearInterval(snackId: number) {
-    const interval = this.countdownIntervals.get(snackId);
-    if (interval) { clearInterval(interval); this.countdownIntervals.delete(snackId); }
+  private clearCountdown(snackId: number) {
+    const i = this.countdownIntervals.get(snackId);
+    if (i) { clearInterval(i); this.countdownIntervals.delete(snackId); }
   }
 
-  ngOnDestroy() {
-    this.countdownIntervals.forEach(i => clearInterval(i));
-  }
+  ngOnDestroy() { this.countdownIntervals.forEach(i => clearInterval(i)); }
 }

@@ -1,4 +1,22 @@
 <div class="snackbar-container">
+
+  <!-- ── TOAST NOTIFICATIONS (status changes, edits) ── -->
+  @for (toast of toasts(); track toast.id) {
+    <div class="toast toast-{{ toast.type }}" (click)="notif.dismiss(toast.id)">
+      <span class="toast-icon">
+        @switch (toast.type) {
+          @case ('success') { ✓ }
+          @case ('info')    { ℹ }
+          @case ('warning') { ⚠ }
+          @case ('error')   { ✕ }
+        }
+      </span>
+      <span class="toast-msg">{{ toast.message }}</span>
+      <button class="snack-dismiss">✕</button>
+    </div>
+  }
+
+  <!-- ── UNDO SNACKBARS (delete with undo) ── -->
   @for (snack of snackbars(); track snack.id) {
     <div class="snackbar">
       <div class="snack-progress" [style.width.%]="(snack.remaining / 10) * 100"></div>
@@ -10,4 +28,5 @@
       </div>
     </div>
   }
+
 </div>
