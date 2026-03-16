@@ -21,7 +21,7 @@ export class AdminDashboardComponent implements OnInit {
 
   activeTab   = signal<'overview' | 'users' | 'departments'>('overview');
   roleLabels  = ROLE_LABELS;
-  roles       = ['administrative','hardware','system','data','cybersecurity'] as const;
+  roles       = ['administrative','hardware','system','data', 'duty'] as const;
 
   users       = this.adminService.users;
   departments = this.adminService.departmentsSignal;

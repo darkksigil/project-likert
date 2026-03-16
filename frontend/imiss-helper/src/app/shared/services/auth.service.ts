@@ -2,7 +2,7 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs';
-import { AuthUser } from '../models/index';
+import { AuthUser, PRIVILEGED_ROLES, DASHBOARD_ROLES, AUTO_PROGRESS_ROLES } from '../models/index';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -11,10 +11,15 @@ export class AuthService {
 
   currentUser = signal<AuthUser | null>(null);
   isLoggedIn  = computed(() => !!this.currentUser());
-  isAdmin     = computed(() => this.currentUser()?.role === 'admin');
+
+  // Role checks
+  isAdmin          = computed(() => this.currentUser()?.role === 'admin');
+  isDuty           = computed(() => this.currentUser()?.role === 'duty');
+  isPrivileged    = computed(() => (PRIVILEGED_ROLES as string[]).includes(this.currentUser()?.role ?? ''));
+  hasDashboard    = computed(() => (DASHBOARD_ROLES as string[]).includes(this.currentUser()?.role ?? ''));
+  canAutoProgress = computed(() => (AUTO_PROGRESS_ROLES as string[]).includes(this.currentUser()?.role ?? ''));
 
   constructor(private http: HttpClient) {
-    // Restore session on reload
     const token = localStorage.getItem(this.TOKEN_KEY);
     if (token) {
       const payload = this.parseToken(token);

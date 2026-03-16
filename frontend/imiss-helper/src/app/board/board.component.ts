@@ -1,14 +1,15 @@
 // src/app/board/board.component.ts
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { AddDutyModalComponent } from '../add-duty-modal/add-duty-modal.component';
-import { RequestColumnComponent } from '../request-column/request-column.component';
-import { SnackbarComponent } from '../snackbar/snackbar.component';
 import { DutyService } from '../shared/services/duty.service';
 import { AuthService } from '../shared/services/auth.service';
 import { DepartmentService } from '../shared/services/department.service';
+import { DutyCardComponent } from '../duty-card/duty-card.component';
+import { SnackbarComponent } from '../snackbar/snackbar.component';
+import { RequestColumnComponent } from '../request-column/request-column.component';
 import { ConcernType, CONCERN_TYPE_LABELS } from '../shared/models/index';
 
 @Component({
@@ -17,7 +18,7 @@ import { ConcernType, CONCERN_TYPE_LABELS } from '../shared/models/index';
   imports: [
     CommonModule, FormsModule,
     NavbarComponent, AddDutyModalComponent,
-    RequestColumnComponent, SnackbarComponent,
+    DutyCardComponent, SnackbarComponent, RequestColumnComponent,
   ],
   templateUrl: './board.component.html',
 })
@@ -30,25 +31,22 @@ export class BoardComponent implements OnInit {
   loading   = this.dutyService.loading;
   isAdmin   = this.auth.isAdmin;
 
-  // ── Today's date ──
   today = new Date().toLocaleDateString('en-US', {
     weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
   });
 
-  // ── Search & Filter ──
   searchQuery         = signal('');
   activeConcernFilter = signal<ConcernType | 'all'>('all');
+  concernTypes        = Object.entries(CONCERN_TYPE_LABELS) as [ConcernType, string][];
 
-  concernTypes = Object.entries(CONCERN_TYPE_LABELS) as [ConcernType, string][];
-  concernIcons: Record<string, string> = {
-    hardware: '🔧', network: '🌐', system: '💻', data: '🗄', other: '📋'
-  };
+  // ── Per-column slide index ──
+  pendingIndex  = signal(0);
+  progressIndex = signal(0);
+  doneIndex     = signal(0);
 
-  // ── Board is the brain: all filtering lives here ──
   private filtered = computed(() => {
     const q    = this.searchQuery().toLowerCase().trim();
     const type = this.activeConcernFilter();
-
     return this.dutyService.duties().filter(d => {
       const matchType   = type === 'all' || (d.concern_type ?? 'other') === type;
       const matchSearch = !q ||
@@ -60,17 +58,58 @@ export class BoardComponent implements OnInit {
     });
   });
 
-  // ── Columns receive pre-filtered data (dumb display) ──
   pending    = computed(() => this.filtered().filter(d => d.status === 'pending'));
   inProgress = computed(() => this.filtered().filter(d => d.status === 'in_progress'));
   done       = computed(() => this.filtered().filter(d => d.status === 'done'));
+
+  endorsedToMe     = this.dutyService.endorsedToMe;
+  endorsementCount = this.dutyService.endorsementCount;
+  hasEndorsements  = computed(() => this.endorsedToMe().length > 0);
 
   get hasSearch(): boolean {
     return !!this.searchQuery() || this.activeConcernFilter() !== 'all';
   }
 
+  constructor() {
+    // Reset indexes when filtered data changes so we don't go out of bounds
+    effect(() => {
+      const p = this.pending().length;
+      const r = this.inProgress().length;
+      const d = this.done().length;
+      if (this.pendingIndex()  >= p && p > 0) this.pendingIndex.set(p - 1);
+      if (this.pendingIndex()  >= p && p === 0) this.pendingIndex.set(0);
+      if (this.progressIndex() >= r && r > 0) this.progressIndex.set(r - 1);
+      if (this.progressIndex() >= r && r === 0) this.progressIndex.set(0);
+      if (this.doneIndex()     >= d && d > 0) this.doneIndex.set(d - 1);
+      if (this.doneIndex()     >= d && d === 0) this.doneIndex.set(0);
+    });
+  }
+
+  // ── Navigation ──
+  next(col: 'pending' | 'progress' | 'done') {
+    const map = {
+      pending:  { idx: this.pendingIndex,  max: this.pending().length },
+      progress: { idx: this.progressIndex, max: this.inProgress().length },
+      done:     { idx: this.doneIndex,     max: this.done().length },
+    };
+    const { idx, max } = map[col];
+    if (idx() < max - 1) idx.update(v => v + 1);
+  }
+
+  prev(col: 'pending' | 'progress' | 'done') {
+    const map = {
+      pending:  this.pendingIndex,
+      progress: this.progressIndex,
+      done:     this.doneIndex,
+    };
+    const idx = map[col];
+    if (idx() > 0) idx.update(v => v - 1);
+  }
+
   ngOnInit() {
     this.dutyService.fetchAll().subscribe();
+    this.dutyService.fetchEndorsedToMe().subscribe();
+    this.dutyService.fetchEndorsementCount().subscribe();
     this.deptService.fetchDepartments().subscribe();
   }
 

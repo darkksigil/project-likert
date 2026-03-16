@@ -11,21 +11,157 @@
       <div class="stat-item"><div class="stat-dot done"></div><span>{{ doneCount() }}</span></div>
     </div>
 
-    @if (isAdmin()) {
-      <a class="btn-nav-link" routerLink="/admin">⚙ Admin</a>
+    @if (endorsementCount() > 0) {
+      <div class="endorse-notif" title="Requests endorsed to you">
+        ↪ <span class="endorse-notif-count">{{ endorsementCount() }}</span>
+      </div>
     }
-
-    <button class="btn-refresh" (click)="refresh()" [class.spinning]="refreshing" title="Refresh">↻</button>
 
     <button class="btn-add" (click)="openModal.emit()">+ New Request</button>
 
-    <div class="user-pill">
-      <div class="user-avatar">{{ currentUser()?.username?.charAt(0)?.toUpperCase() }}</div>
-      <div class="user-info">
-        <div class="user-name">{{ currentUser()?.username }}</div>
-        <div class="user-role">{{ currentUser()?.role }}</div>
-      </div>
-      <button class="btn-logout" (click)="logout()" title="Logout">🔻</button>
+    <!-- ── USER MENU ── -->
+    <div class="user-menu-wrap">
+      <button class="user-pill" (click)="toggleDropdown(); $event.stopPropagation()">
+        <div class="user-avatar">{{ currentUser()?.username?.charAt(0)?.toUpperCase() }}</div>
+        <div class="user-info">
+          <div class="user-name">{{ currentUser()?.username }}</div>
+          <div class="user-role">{{ currentUser()?.role }}</div>
+        </div>
+        <svg class="dropdown-chevron" [class.open]="dropdownOpen()"
+          width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M2 4L6 8L10 4" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      @if (dropdownOpen()) {
+        <div class="user-dropdown" (click)="$event.stopPropagation()">
+          <button class="dropdown-item" (click)="openProfile()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
+            Profile
+          </button>
+          <button class="dropdown-item" (click)="openSettings()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            </svg>
+            Settings
+          </button>
+          @if (isAdmin()) {
+            <a class="dropdown-item" routerLink="/admin" (click)="dropdownOpen.set(false)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+              Admin Panel
+            </a>
+          }
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item dropdown-item-danger" (click)="logout()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+            </svg>
+            Log Out
+          </button>
+        </div>
+      }
     </div>
   </div>
 </nav>
+
+<!-- ── PROFILE MODAL ── -->
+@if (profileOpen()) {
+  <div class="modal-overlay" (click)="profileOpen.set(false)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title">Profile</span>
+        <button class="modal-close" (click)="profileOpen.set(false)">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" [ngModel]="profileForm().full_name"
+            (ngModelChange)="setFullName($event)"
+            placeholder="Your full name" />
+        </div>
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" [value]="profileForm().username" disabled
+            style="opacity:0.5;cursor:not-allowed" />
+          <span style="font-size:0.65rem;color:var(--text-light)">Contact admin to change username</span>
+        </div>
+        <div class="form-group">
+          <label>Current Password <span class="optional">(required to change password)</span></label>
+          <input type="password" [ngModel]="profileForm().currentPassword"
+            (ngModelChange)="setCurrentPassword($event)"
+            placeholder="Current password" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>New Password</label>
+            <input type="password" [ngModel]="profileForm().newPassword"
+              (ngModelChange)="setNewPassword($event)"
+              placeholder="New password" />
+          </div>
+          <div class="form-group">
+            <label>Confirm Password</label>
+            <input type="password" [ngModel]="profileForm().confirmPassword"
+              (ngModelChange)="setConfirmPassword($event)"
+              placeholder="Confirm new password" />
+          </div>
+        </div>
+        @if (profileError()) {
+          <div class="form-error">{{ profileError() }}</div>
+        }
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-cancel" (click)="profileOpen.set(false)">Cancel</button>
+        <button class="btn-submit" [disabled]="profileSaving()" (click)="saveProfile()">
+          @if (profileSaving()) { <div class="spinner spinner-sm"></div> }
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ── SETTINGS MODAL ── -->
+@if (settingsOpen()) {
+  <div class="modal-overlay" (click)="settingsOpen.set(false)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title">Settings</span>
+        <button class="modal-close" (click)="settingsOpen.set(false)">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Toast notifications</div>
+            <div class="setting-sub">Show live update toasts on the board</div>
+          </div>
+          <label class="toggle-wrap">
+            <input type="checkbox" [checked]="toastsEnabled()"
+              (change)="toggleToasts($any($event.target).checked)" />
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Dark mode</div>
+            <div class="setting-sub">Switch to dark theme</div>
+          </div>
+          <label class="toggle-wrap">
+            <input type="checkbox" [checked]="darkMode()"
+              (change)="toggleDarkMode($any($event.target).checked)" />
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-submit" (click)="settingsOpen.set(false)">Done</button>
+      </div>
+    </div>
+  </div>
+}

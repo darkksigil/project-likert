@@ -12,59 +12,168 @@
       </div>
     </div>
 
-    <!-- ── SEARCH + FILTER BAR ── -->
     <div class="board-controls">
-
-      <!-- Search -->
       <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input
-          type="text"
-          class="search-input"
-          placeholder="Search request, dept, ID..."
-          [ngModel]="searchQuery()"
-          (ngModelChange)="searchQuery.set($event)" />
+        <span class="search-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        </span>
+        <input type="text" class="search-input" placeholder="Search request, dept, ID..."
+          [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" />
         @if (searchQuery()) {
-          <button class="search-clear" (click)="searchQuery.set('')">✕</button>
+          <button class="search-clear" (click)="searchQuery.set('')">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
         }
       </div>
-
-      <!-- Concern type filter dropdown -->
-      <select class="filter-select" [ngModel]="activeConcernFilter()" (ngModelChange)="setFilter($event)" [class.has-value]="activeConcernFilter() !== 'all'">
+      <select class="filter-select" [ngModel]="activeConcernFilter()"
+        (ngModelChange)="setFilter($event)" [class.has-value]="activeConcernFilter() !== 'all'">
         <option value="all">All Types</option>
         @for (entry of concernTypes; track entry[0]) {
-          <option [value]="entry[0]">{{ concernIcons[entry[0]] }} {{ entry[1] }}</option>
+          <option [value]="entry[0]">{{ entry[1] }}</option>
         }
       </select>
-
       @if (hasSearch) {
-        <button class="btn-clear-filters" (click)="clearSearch()">✕ Clear</button>
+        <button class="btn-clear-filters" (click)="clearSearch()">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          Clear
+        </button>
       }
     </div>
   </div>
 
-  <!-- ── KANBAN BOARD — board passes data, columns are dumb ── -->
+  <!-- ── ENDORSED SECTION ── -->
+  @if (hasEndorsements()) {
+    <div class="endorsed-section">
+      <div class="endorsed-section-header">
+        <div class="endorsed-section-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17l6-5-6-5"/><path d="M21 12H9"/></svg>
+          Endorsements
+          <span class="endorsed-count-badge">{{ endorsedToMe().length }}</span>
+        </div>
+        <span class="endorsed-section-sub">Requests assigned to you for resolution</span>
+      </div>
+      <div class="endorsed-cards-scroll">
+        @for (duty of endorsedToMe(); track duty.id) {
+          <div class="endorsed-card-wrap">
+            <div class="endorsed-from-label">From: {{ duty.endorsed_by_name ?? 'Unknown' }}</div>
+            <app-duty-card [duty]="duty" />
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── BOARD ── -->
   <div class="board">
-    <app-request-column
-      [duties]="pending()"
-      status="pending"
-      title="Pending"
-      [loading]="loading()"
-      [searchActive]="hasSearch" />
 
-    <app-request-column
-      [duties]="inProgress()"
-      status="in_progress"
-      title="In Progress"
-      [loading]="loading()"
-      [searchActive]="hasSearch" />
+    <!-- PENDING -->
+    <div class="column col-pending">
+      <div class="column-header">
+        <div class="column-title"><div class="col-indicator"></div>Pending</div>
+        <span class="col-count">{{ pending().length }}</span>
+      </div>
+      <div class="column-body">
+        @if (loading()) {
+          <div class="skeleton-card">
+            <div class="skel-line" style="height:10px;width:40%"></div>
+            <div class="skel-line" style="height:14px;width:70%"></div>
+            <div class="skel-line" style="height:36px;width:100%;margin-top:8px"></div>
+          </div>
+        } @else if (pending().length === 0) {
+          <div class="empty-state"><div class="empty-icon">◷</div><span>{{ hasSearch ? 'No results found' : 'No pending requests' }}</span></div>
+        } @else if (hasEndorsements()) {
+          <app-duty-card [duty]="pending()[pendingIndex()]" />
+          @if (pending().length > 1) {
+            <div class="col-nav">
+              <button class="col-nav-btn" (click)="prev('pending')" [disabled]="pendingIndex() === 0">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <span class="col-nav-counter">{{ pendingIndex() + 1 }} / {{ pending().length }}</span>
+              <button class="col-nav-btn" (click)="next('pending')" [disabled]="pendingIndex() === pending().length - 1">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+              </button>
+            </div>
+          }
+        } @else {
+          @for (duty of pending(); track duty.id) {
+            <app-duty-card [duty]="duty" />
+          }
+        }
+      </div>
+    </div>
 
-    <app-request-column
-      [duties]="done()"
-      status="done"
-      title="Done"
-      [loading]="loading()"
-      [searchActive]="hasSearch" />
+    <!-- IN PROGRESS -->
+    <div class="column col-progress">
+      <div class="column-header">
+        <div class="column-title"><div class="col-indicator"></div>In Progress</div>
+        <span class="col-count">{{ inProgress().length }}</span>
+      </div>
+      <div class="column-body">
+        @if (loading()) {
+          <div class="skeleton-card">
+            <div class="skel-line" style="height:10px;width:40%"></div>
+            <div class="skel-line" style="height:14px;width:70%"></div>
+            <div class="skel-line" style="height:36px;width:100%;margin-top:8px"></div>
+          </div>
+        } @else if (inProgress().length === 0) {
+          <div class="empty-state"><div class="empty-icon">◎</div><span>{{ hasSearch ? 'No results found' : 'No active requests' }}</span></div>
+        } @else if (hasEndorsements()) {
+          <app-duty-card [duty]="inProgress()[progressIndex()]" />
+          @if (inProgress().length > 1) {
+            <div class="col-nav">
+              <button class="col-nav-btn" (click)="prev('progress')" [disabled]="progressIndex() === 0">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <span class="col-nav-counter">{{ progressIndex() + 1 }} / {{ inProgress().length }}</span>
+              <button class="col-nav-btn" (click)="next('progress')" [disabled]="progressIndex() === inProgress().length - 1">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+              </button>
+            </div>
+          }
+        } @else {
+          @for (duty of inProgress(); track duty.id) {
+            <app-duty-card [duty]="duty" />
+          }
+        }
+      </div>
+    </div>
+
+    <!-- DONE -->
+    <div class="column col-done">
+      <div class="column-header">
+        <div class="column-title"><div class="col-indicator"></div>Done</div>
+        <span class="col-count">{{ done().length }}</span>
+      </div>
+      <div class="column-body">
+        @if (loading()) {
+          <div class="skeleton-card">
+            <div class="skel-line" style="height:10px;width:40%"></div>
+            <div class="skel-line" style="height:14px;width:70%"></div>
+            <div class="skel-line" style="height:36px;width:100%;margin-top:8px"></div>
+          </div>
+        } @else if (done().length === 0) {
+          <div class="empty-state"><div class="empty-icon">✓</div><span>{{ hasSearch ? 'No results found' : 'No completed requests' }}</span></div>
+        } @else if (hasEndorsements()) {
+          <app-duty-card [duty]="done()[doneIndex()]" />
+          @if (done().length > 1) {
+            <div class="col-nav">
+              <button class="col-nav-btn" (click)="prev('done')" [disabled]="doneIndex() === 0">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <span class="col-nav-counter">{{ doneIndex() + 1 }} / {{ done().length }}</span>
+              <button class="col-nav-btn" (click)="next('done')" [disabled]="doneIndex() === done().length - 1">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+              </button>
+            </div>
+          }
+        } @else {
+          @for (duty of done(); track duty.id) {
+            <app-duty-card [duty]="duty" />
+          }
+        }
+      </div>
+    </div>
+
   </div>
 </main>
 

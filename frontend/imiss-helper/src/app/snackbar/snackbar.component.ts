@@ -46,7 +46,12 @@ export class SnackbarComponent implements OnDestroy {
 
   undo(snackId: number) {
     this.clearCountdown(snackId);
-    this.dutyService.undoDelete(snackId);
+    const snack = this.dutyService.snackbars().find(s => s.id === snackId);
+    if (snack?.isEndorse) {
+      this.dutyService.undoUnendorse(snackId);
+    } else {
+      this.dutyService.undoDelete(snackId);
+    }
   }
 
   dismiss(snackId: number) {

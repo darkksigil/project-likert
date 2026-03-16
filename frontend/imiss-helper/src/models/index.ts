@@ -2,7 +2,7 @@
 
 export type DutyStatus  = 'pending' | 'in_progress' | 'done' | 'endorsed' | 'failed';
 export type ConcernType = 'hardware' | 'network' | 'system' | 'data' | 'other';
-export type UserRole    = 'admin' | 'administrative' | 'hardware' | 'system' | 'data' | 'cybersecurity';
+export type UserRole    = 'admin' | 'duty' | 'administrative' | 'hardware' | 'system' | 'data' | 'cybersecurity';
 
 export interface DutyData {
   name:        string;
@@ -13,13 +13,20 @@ export interface DutyData {
 }
 
 export interface Duty {
-  id:              number;
-  data:            DutyData;
-  status:          DutyStatus;
-  concern_type:    ConcernType;
-  created_at:      string;
-  updated_at:      string;
-  created_by_name: string | null;
+  id:               number;
+  data:             DutyData;
+  status:           DutyStatus;
+  concern_type:     ConcernType;
+  created_at:       string;
+  updated_at:       string;
+  created_by:       number | null;
+  created_by_name:  string | null;
+  jo_number?:       string | null;
+  jo_verified?:     boolean | null;
+  endorsed_to?:     number | null;
+  endorsed_by?:     number | null;
+  endorsed_at?:     string | null;
+  endorsed_by_name?: string | null;
 }
 
 export interface CreateDutyPayload {
@@ -28,6 +35,25 @@ export interface CreateDutyPayload {
   concern:     string;
   localNum?:   string;
   concernType: ConcernType;
+}
+
+export interface UpdateDutyPayload {
+  name?:        string;
+  department?:  string;
+  concern?:     string;
+  localNum?:    string;
+  concernType?: ConcernType;
+}
+
+export interface ActivityLog {
+  id:         number;
+  duty_id:    number;
+  action:     string;
+  from_value: string | null;
+  to_value:   string | null;
+  actor_name: string;
+  actor_role: string;
+  created_at: string;
 }
 
 export interface User {
@@ -71,9 +97,19 @@ export const CONCERN_TYPE_COLORS: Record<ConcernType, string> = {
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   admin:          'Administrator',
+  duty:           'Duty',
   administrative: 'Administrative',
   hardware:       'Hardware',
   system:         'System',
   data:           'Data',
   cybersecurity:  'Cybersecurity',
 };
+
+// Roles that can see all requests unfiltered
+export const PRIVILEGED_ROLES: UserRole[] = ['admin', 'duty'];
+
+// Roles that get personal dashboard
+export const DASHBOARD_ROLES: UserRole[] = ['duty', 'administrative', 'hardware', 'system', 'data', 'cybersecurity'];
+
+// Roles that auto move endorsed card to in_progress
+export const AUTO_PROGRESS_ROLES: UserRole[] = ['admin', 'duty'];

@@ -2,8 +2,13 @@
 @if (editing()) {
   <div class="card card-editing">
     <div class="card-edit-header">
-      <span class="card-id">{{ formattedId }} <span class="edit-badge">✎ Editing</span></span>
-      <button class="btn-card-x" (click)="cancelEdit()">✕</button>
+      <span class="card-id">{{ formattedId }} <span class="edit-badge">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Editing
+      </span></span>
+      <button class="btn-card-x" (click)="cancelEdit()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
     </div>
     <div class="edit-fields">
       <div class="edit-row">
@@ -32,11 +37,11 @@
       <div class="form-group">
         <label>Concern Type</label>
         <select [ngModel]="editType()" (ngModelChange)="editType.set($event)" [class.has-value]="editType()">
-          <option value="hardware">🔧 Hardware</option>
-          <option value="network">🌐 Network</option>
-          <option value="system">💻 System</option>
-          <option value="data">🗄 Data</option>
-          <option value="other">📋 Other</option>
+          <option value="hardware">Hardware</option>
+          <option value="network">Network</option>
+          <option value="system">System</option>
+          <option value="data">Data</option>
+          <option value="other">Other</option>
         </select>
       </div>
       <div class="form-group">
@@ -47,33 +52,54 @@
     <div class="edit-actions">
       <button class="btn-status btn-cancel" (click)="cancelEdit()">Cancel</button>
       <button class="btn-edit-save" [disabled]="saving() || !editDept() || !editConcern().trim()" (click)="saveEdit()">
-        @if (saving()) { <div class="spinner spinner-sm"></div> Saving... } @else { ✓ Save }
+        @if (saving()) {
+          <div class="spinner spinner-sm"></div> Saving...
+        } @else {
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          Save
+        }
       </button>
     </div>
   </div>
 
 } @else {
 
-  <!-- ── NORMAL VIEW ── -->
   <div class="card">
 
     <!-- Top actions: ⋮ menu + ✕ -->
     <div class="card-top-actions">
       <div class="card-menu-wrap">
-        <button class="btn-card-dots" (click)="toggleMenu()">⋮</button>
+        <button class="btn-card-dots" (click)="toggleMenu()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+        </button>
         @if (menuOpen()) {
           <div class="card-menu">
-            <button class="card-menu-item" (click)="startEdit(); menuOpen.set(false)">✎ Edit</button>
+            <button class="card-menu-item" (click)="startEdit(); menuOpen.set(false)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Edit
+            </button>
+            <button class="card-menu-item" (click)="openEndorse(); menuOpen.set(false)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17l6-5-6-5"/><path d="M21 12H9"/></svg>
+              Endorse To
+            </button>
             <button class="card-menu-item" (click)="toggleLog(); menuOpen.set(false)">
-              {{ showLog() ? '▲ Hide Log' : '▼ Activity Log' }}
+              @if (showLog()) {
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+                Hide Log
+              } @else {
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                Activity Log
+              }
             </button>
           </div>
         }
       </div>
-      <button class="btn-card-x" (click)="remove()">✕</button>
+      <button class="btn-card-x" (click)="remove()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
     </div>
 
-    <!-- ID + badges row -->
+    <!-- ID + badges -->
     <div class="card-id">
       {{ formattedId }}
       <span class="status-badge badge-{{ duty().status }}">
@@ -82,49 +108,180 @@
       <span class="concern-badge" [style.background]="concernColor + '20'" [style.color]="concernColor">
         {{ concernLabel }}
       </span>
+      @if (joBadge === 'verified') {
+        <span class="jo-badge jo-badge-verified" title="Done with Job Order">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </span>
+      } @else if (joBadge === 'skipped') {
+        <span class="jo-badge jo-badge-skipped" title="Done without Job Order">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </span>
+      }
     </div>
 
-    <!-- Name / dept hierarchy -->
     <div class="card-name">{{ displayName }}</div>
     @if (showDept) { <div class="card-dept">{{ duty().data.department }}</div> }
-
-    <!-- Concern description -->
     <div class="card-concern">{{ duty().data.concern }}</div>
 
-    <!-- Metadata group -->
+    <!-- Metadata -->
     <div class="card-meta-group">
       <div class="card-meta-row">
-        <span class="card-meta-label">📞</span>
+        <span class="card-meta-label">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.22 1.18 2 2 0 012.18 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.72 6.72l1.06-1.06a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        </span>
         <span class="card-meta-value">{{ duty().data.localNum }}</span>
       </div>
       <div class="card-meta-row">
-        <span class="card-meta-label">🗓</span>
+        <span class="card-meta-label">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </span>
         <span class="card-meta-value">{{ formattedSubmitted }}</span>
       </div>
       <div class="card-meta-row">
-        <span class="card-meta-label">⏱</span>
-        <span class="card-meta-value" [class]="urgencyClass()">
-          {{ timeAgo() }}
+        <span class="card-meta-label">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </span>
+        @if (duty().status === 'done') {
+          <span class="card-meta-value">{{ formattedFinished }}</span>
+        } @else {
+          <span class="card-meta-value" [class]="urgencyClass()">{{ timeAgo() }}</span>
+        }
       </div>
-      @if (lastUpdatedLabel) {
-        <div class="card-meta-row card-last-updated">
-          <span class="card-meta-label">✍</span>
-          <span class="card-meta-value">{{ lastUpdatedLabel }}</span>
+      @if (duty().jo_number) {
+        <div class="card-meta-row">
+          <span class="card-meta-label">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </span>
+          <span class="card-meta-value jo-ref">{{ duty().jo_number }}</span>
+        </div>
+      }
+      @if (duty().endorsed_by_name) {
+        <div class="card-meta-row">
+          <span class="card-meta-label">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17l6-5-6-5"/><path d="M21 12H9"/></svg>
+          </span>
+          <span class="card-meta-value">From {{ duty().endorsed_by_name }}</span>
         </div>
       }
     </div>
 
-    <!-- ✅ Single context action button — full width -->
-    <button
-      class="btn-primary-action {{ primaryAction.cls }}"
-      [disabled]="actionLoading()"
-      (click)="triggerAction()">
-      @if (actionLoading()) { <div class="spinner spinner-sm"></div> }
-      @else { {{ primaryAction.label }} }
-    </button>
+    <!-- ── ENDORSE PICKER PANEL ── -->
+    @if (endorseMode()) {
+      <div class="endorse-panel">
+        <div class="endorse-panel-title">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17l6-5-6-5"/><path d="M21 12H9"/></svg>
+          Endorse To
+        </div>
+        <select class="endorse-select has-value"
+          [ngModel]="endorseToId()"
+          (ngModelChange)="endorseToId.set($event)">
+          <option value="" disabled>Select user...</option>
+          @for (user of otherUsers(); track user.id) {
+            <option [value]="user.id">
+              {{ user.full_name || user.username }} · {{ user.role }}
+            </option>
+          }
+        </select>
+        <div class="endorse-actions">
+          <button class="btn-jo-cancel-link" (click)="cancelEndorse()">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            Cancel
+          </button>
+          <button class="btn-primary-action btn-primary-progress"
+            [disabled]="!endorseToId() || endorsing()"
+            (click)="confirmEndorse()">
+            @if (endorsing()) {
+              <div class="spinner spinner-sm"></div>
+            } @else {
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17l6-5-6-5"/><path d="M21 12H9"/></svg>
+              Confirm Endorse
+            }
+          </button>
+        </div>
+      </div>
 
-    <!-- Activity log panel -->
+    <!-- ── JO INPUT PANEL ── -->
+    } @else if (joMode()) {
+      <div class="jo-panel">
+        <div class="jo-panel-title">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Job Order No.
+          <span class="jo-optional">Enter last 4–6 digits</span>
+        </div>
+        <div class="jo-input-row">
+          <input
+            type="text"
+            inputmode="numeric"
+            class="jo-input"
+            [class.jo-input-error]="joInputError()"
+            placeholder="e.g. 18106"
+            maxlength="6"
+            [ngModel]="joInput()"
+            (ngModelChange)="onJoInput($event)"
+            (keydown.enter)="verifyJO()" />
+          <button class="btn-jo-verify" [disabled]="joVerifying() || !joInput().trim()" (click)="verifyJO()">
+            @if (joVerifying()) {
+              <div class="spinner spinner-sm"></div>
+            } @else {
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            }
+          </button>
+          <button class="btn-jo-skip" [disabled]="joConfirming()" (click)="skipJO()">
+            @if (joConfirming()) { <div class="spinner spinner-sm"></div> }
+            @else { Skip }
+          </button>
+        </div>
+        @if (joInputError()) {
+          <div class="jo-field-error">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            {{ joInputError() }}
+          </div>
+        }
+        @if (joResult(); as result) {
+          @if (result.found) {
+            <div class="jo-result jo-found">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Found — {{ result.jo_number }}
+              @if (result.department) { · {{ result.department }} }
+              @if (result.nature_of_work) { · {{ result.nature_of_work }} }
+            </div>
+          } @else {
+            <div class="jo-result jo-not-found">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              {{ result.error ?? 'Not found. Please check the number and try again.' }}
+            </div>
+          }
+        }
+        <button class="btn-jo-cancel-link" (click)="cancelJO()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          Cancel
+        </button>
+      </div>
+
+    } @else {
+      <!-- Normal context action button -->
+      <button
+        class="btn-primary-action {{ primaryAction.cls }}"
+        [disabled]="actionLoading()"
+        (click)="triggerAction()">
+        @if (actionLoading()) {
+          <div class="spinner spinner-sm"></div>
+        } @else {
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            @if (primaryAction.next === 'in_progress') {
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            } @else if (primaryAction.next === 'done') {
+              <path d="M20 6L9 17l-5-5"/>
+            } @else {
+              <path d="M9 14L4 9l5-5"/><path d="M4 9h16"/>
+            }
+          </svg>
+          {{ primaryAction.label }}
+        }
+      </button>
+    }
+
+    <!-- Activity log -->
     @if (showLog()) {
       <div class="activity-log">
         <div class="log-title">Activity Timeline</div>
