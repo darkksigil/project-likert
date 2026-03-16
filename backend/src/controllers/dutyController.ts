@@ -14,25 +14,25 @@ export async function getAllDutiesHandler(req: Request, res: Response) {
 
 export async function createDutyHandler(req: Request, res: Response) {
   try {
-    const duty = await createDuty(req.body, (req as any).user.id);
+    const actor = (req as any).user;
+    const duty  = await createDuty(req.body, actor.id, actor); // ← pass actor
     res.status(201).json(duty);
   } catch (e) { logger.error(e); res.status(500).json({ error: 'Failed to create' }); }
 }
 
 export async function updateDutyStatusHandler(req: Request, res: Response) {
   try {
-    const { status } = req.body;
+    const { status, joNumber, joVerified } = req.body;
     const actor = (req as any).user;
-    const duty = await updateDutyStatus(Number(req.params.id), status, actor);
+    const duty  = await updateDutyStatus(Number(req.params.id), status, actor, joNumber, joVerified);
     res.json(duty);
   } catch (e) { logger.error(e); res.status(500).json({ error: 'Failed to update status' }); }
 }
 
-// ✅ Update duty details — all users
 export async function updateDutyDetailsHandler(req: Request, res: Response) {
   try {
     const actor = (req as any).user;
-    const duty = await updateDutyDetails(Number(req.params.id), req.body, actor);
+    const duty  = await updateDutyDetails(Number(req.params.id), req.body, actor);
     res.json(duty);
   } catch (e) { logger.error(e); res.status(500).json({ error: 'Failed to update details' }); }
 }
@@ -47,12 +47,12 @@ export async function updateDutyConcernTypeHandler(req: Request, res: Response) 
 
 export async function deleteDutyHandler(req: Request, res: Response) {
   try {
-    await deleteDuty(Number(req.params.id));
+    const actor = (req as any).user;
+    await deleteDuty(Number(req.params.id), actor); // ← pass actor
     res.json({ success: true });
   } catch (e) { logger.error(e); res.status(500).json({ error: 'Failed to delete' }); }
 }
 
-// ✅ Activity log
 export async function getDutyActivityLogHandler(req: Request, res: Response) {
   try {
     const logs = await getDutyActivityLog(Number(req.params.id));

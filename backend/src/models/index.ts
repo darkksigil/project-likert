@@ -20,12 +20,12 @@ export const createUserSchema = z.object({
   username:  z.string().min(3).max(100),
   password:  z.string().min(8),
   full_name: z.string().min(1),
-  role:      z.enum(['administrative','hardware','system','data','cybersecurity']),
+  role:      z.enum(['admin', 'duty', 'administrative', 'hardware', 'system', 'data', 'cybersecurity']),
 });
 
 export const updateUserSchema = z.object({
   full_name: z.string().min(1).optional(),
-  role:      z.enum(['administrative','hardware','system','data','cybersecurity']).optional(),
+  role:      z.enum(['admin', 'duty', 'administrative', 'hardware', 'system', 'data', 'cybersecurity']).optional(),
   is_active: z.boolean().optional(),
   password:  z.string().min(8).optional(),
 });
