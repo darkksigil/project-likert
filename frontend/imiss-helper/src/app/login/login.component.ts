@@ -1,5 +1,5 @@
 // src/app/login/login.component.ts
-import { Component, inject } from '@angular/core';
+import { Component, inject, ViewEncapsulation} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -10,6 +10,8 @@ import { AuthService } from '../shared/services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './login.component.html',
+  styleUrl: './login.component.css',
+  encapsulation: ViewEncapsulation.None,
 })
 export class LoginComponent {
   private auth   = inject(AuthService);

@@ -1,0 +1,249 @@
+.board-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.8rem; letter-spacing: -0.03em; color: var(--text); }
+
+/* ── PAGE LAYOUT ── */
+.dash-page {
+  position: relative; z-index: 1;
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.dash-header { margin-bottom: 1.5rem; }
+
+/* ── STATS ── */
+.dash-stats {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+@media (max-width: 900px) { .dash-stats { grid-template-columns: repeat(4, 1fr); } }
+
+.dash-stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.dash-stat-num   { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.6rem; color: var(--text); }
+.dash-stat-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+.dash-stat-pending  { border-top: 3px solid var(--pending); }
+.dash-stat-progress { border-top: 3px solid var(--progress); }
+.dash-stat-done     { border-top: 3px solid var(--done); }
+.dash-stat-endorsed { border-top: 3px solid #7C3AED; }
+
+/* ── FILTERS ── */
+.dash-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.dash-field { height: 42px; }
+.dash-field-search { flex: 1; min-width: 200px; }
+.dash-field-date { min-width: 220px; }
+
+/* Material field font */
+.dash-filters .mat-mdc-form-field,
+.dash-filters input.mat-mdc-input-element,
+.dash-filters .mat-mdc-select-value-text,
+.dash-filters .mat-date-range-input-inner,
+.dash-filters .mat-mdc-floating-label {
+  font-family: 'DM Mono', monospace !important;
+  font-size: 0.78rem !important;
+}
+
+/* Wrapper height */
+.dash-filters .mat-mdc-text-field-wrapper {
+  height: 42px !important;
+}
+.dash-filters .mat-mdc-form-field-flex {
+  height: 42px;
+}
+.dash-filters .mat-mdc-form-field-infix {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+  min-height: unset !important;
+}
+
+/* Rounded pill shape */
+.dash-filters .mat-mdc-form-field .mdc-notched-outline__leading {
+  border-radius: 20px 0 0 20px !important;
+  min-width: 20px !important;
+}
+.dash-filters .mat-mdc-form-field .mdc-notched-outline__trailing {
+  border-radius: 0 20px 20px 0 !important;
+}
+
+/* Border colors */
+.dash-filters .mdc-notched-outline__leading,
+.dash-filters .mdc-notched-outline__notch,
+.dash-filters .mdc-notched-outline__trailing {
+  border-color: var(--accent) !important;
+}
+.dash-filters .mat-mdc-form-field:hover .mdc-notched-outline__leading,
+.dash-filters .mat-mdc-form-field:hover .mdc-notched-outline__notch,
+.dash-filters .mat-mdc-form-field:hover .mdc-notched-outline__trailing {
+  border-color: var(--accent) !important;
+}
+.dash-filters .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
+.dash-filters .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
+.dash-filters .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
+  border-color: var(--accent) !important;
+}
+
+/* Label */
+.dash-filters .mat-mdc-floating-label {
+  color: var(--text-muted) !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
+.dash-filters .mat-mdc-form-field.mat-focused .mat-mdc-floating-label,
+.dash-filters .mat-mdc-form-field .mat-mdc-floating-label.mdc-floating-label--float-above {
+  top: 0 !important;
+  transform: translateY(-50%) scale(0.75) !important;
+  color: var(--accent) !important;
+}
+
+/* Select and input text */
+.dash-filters .mat-mdc-select-trigger,
+.dash-filters input.mat-mdc-input-element {
+  margin-top: 0 !important;
+  color: var(--text);
+}
+
+/* ── CLEAR BUTTON ── */
+.btn-clear-filters {
+  height: 42px;
+  padding: 0 16px;
+  border-radius: 20px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-clear-filters:hover {
+  background: var(--accent);
+  color: white;
+}
+
+/* ── CHIPS ── */
+.dash-chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 0.75rem; }
+.dash-chip {
+  display: flex; align-items: center; gap: 6px;
+  background: #DBEAFE; color: #1E3A8A;
+  border: 1px solid #BFDBFE; border-radius: 20px;
+  padding: 3px 10px; font-size: 0.72rem; font-weight: 600;
+}
+.dash-chip-remove {
+  background: none; border: none; cursor: pointer;
+  color: #1E3A8A; display: flex; align-items: center;
+  padding: 0; opacity: 0.6; transition: opacity 0.15s;
+}
+.dash-chip-remove:hover { opacity: 1; }
+
+/* ── TABLE ── */
+.dash-table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  overflow-x: auto;
+  box-shadow: var(--shadow);
+  margin-bottom: 1rem;
+}
+
+.dash-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  min-width: 780px;
+  table-layout: fixed; /* ← add this */
+}
+
+.dash-table th {
+  text-align: center !important;
+  padding: 10px 14px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+  white-space: nowrap;
+}
+
+.dash-table th:nth-child(1) { width: 80px; }   /* ID */
+.dash-table th:nth-child(2) { width: 120px; }  /* Department */
+.dash-table th:nth-child(3) { width: auto; }   /* Concern — takes remaining space */
+.dash-table th:nth-child(4) { width: 100px; }  /* Type */
+.dash-table th:nth-child(5) { width: 140px; }  /* Status */
+.dash-table th:nth-child(6) { width: 220px; }  /* Last Activity */
+.dash-table th:nth-child(7) { width: 180px; }  /* Created */
+
+
+.dash-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.dash-table tr:last-child td { border-bottom: none; }
+.dash-table tr:hover td { background: var(--surface2); }
+
+/* ── TD ALIGNMENT ── */
+.dash-table td { text-align: center; }
+.dash-table td:nth-child(3) { text-align: left; }
+
+.dash-td-id      { font-weight: 600; color: var(--text); white-space: nowrap; width: 72px; }
+.dash-td-dept    { color: var(--accent); font-size: 0.78rem; white-space: nowrap; width: 110px; }
+.dash-td-concern { color: var(--text-sub); max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dash-td-type    { white-space: nowrap; width: 90px; }
+.dash-td-status  { white-space: nowrap; width: 130px; }
+.dash-td-activity { min-width: 200px; }
+.dash-td-date    { white-space: nowrap; width: 180px; font-size: 0.72rem; color: var(--text-muted); }
+
+.last-activity-label { font-size: 0.78rem; color: var(--text); font-weight: 500; }
+.last-activity-meta  { font-size: 0.67rem; color: var(--text-muted); margin-top: 2px; }
+
+.dash-empty     { text-align: center; padding: 2rem; color: var(--text-light); }
+.dash-empty-val { color: var(--text-light); }
+
+/* ── JO INLINE BADGE ── */
+.jo-inline-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 0.6rem; font-weight: 700;
+  padding: 1px 6px; border-radius: 10px;
+  margin-left: 4px; vertical-align: middle;
+}
+.jo-inline-verified { background: #DCFCE7; color: #166534; border: 1px solid #BBF7D0; }
+.jo-inline-skipped  { background: #FEF9C3; color: #92400E; border: 1px solid #FDE68A; }
+
+/* ── PAGINATION ── */
+.dash-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+}
+.dash-page-info { font-size: 0.72rem; color: var(--text-muted); }
+.dash-page-btns { display: flex; gap: 4px; }
+.dash-page-btn {
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; cursor: pointer;
+  font-family: 'DM Mono', monospace; font-size: 0.72rem;
+  color: var(--text-muted); transition: all 0.15s;
+}
+.dash-page-btn:hover:not(:disabled):not(.active) { border-color: var(--accent); color: var(--accent); }
+.dash-page-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+.dash-page-btn:disabled { opacity: 0.3; cursor: not-allowed; }

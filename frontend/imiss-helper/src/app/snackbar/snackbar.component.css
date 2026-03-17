@@ -1,0 +1,18 @@
+.snackbar-container { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 9999; width: 360px; max-width: calc(100vw - 2rem); }
+.snackbar { background: #1F2937; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.2); animation: snackIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes snackIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.snack-progress { height: 3px; background: var(--accent); transition: width 1s linear; }
+.snack-body { display: flex; align-items: center; gap: 8px; padding: 10px 12px; }
+.snack-msg   { font-size: 0.78rem; color: white; flex: 1; }
+.snack-timer { font-size: 0.68rem; color: #9CA3AF; min-width: 24px; }
+.snack-undo  { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.72rem; background: var(--accent); color: white; border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+.snack-undo:hover { background: var(--accent-hover); }
+.snack-dismiss { background: none; border: none; color: #6B7280; cursor: pointer; font-size: 0.75rem; padding: 2px 4px; transition: color 0.15s; }
+.snack-dismiss:hover { color: white; }
+.toast { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.12); animation: snackIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); font-size: 0.78rem; }
+.toast-success { background: #166534; color: white; }
+.toast-info    { background: #1E3A8A; color: white; }
+.toast-warning { background: #92400E; color: white; }
+.toast-error   { background: #991B1B; color: white; }
+.toast-icon    { font-size: 0.85rem; font-weight: 700; flex-shrink: 0; }
+.toast-msg     { flex: 1; }

@@ -1,5 +1,5 @@
 // src/app/snackbar/snackbar.component.ts
-import { Component, inject, OnDestroy, effect } from '@angular/core';
+import { Component, inject, OnDestroy, effect, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DutyService } from '../shared/services/duty.service';
 import { NotificationService } from '../shared/services/notification.service';
@@ -9,6 +9,8 @@ import { NotificationService } from '../shared/services/notification.service';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './snackbar.component.html',
+  encapsulation: ViewEncapsulation.None,
+  styleUrl: './snackbar.component.css',
 })
 export class SnackbarComponent implements OnDestroy {
   dutyService = inject(DutyService);

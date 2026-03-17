@@ -8,7 +8,8 @@ export type SSEEventType =
   | 'duty_updated'
   | 'duty_deleted'
   | 'duty_endorsed'
-  | 'duty_unendorsed';
+  | 'duty_unendorsed'
+  | 'duty_followed_update';
 
 export interface SSEEvent {
   type:        SSEEventType;

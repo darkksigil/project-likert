@@ -6,6 +6,8 @@ import { Duty, CreateDutyPayload, UpdateDutyPayload, DutyStatus, ConcernType, Ac
 import { NotificationService } from './notification.service';
 import { SseService } from './sse.service';
 import { AuthService } from './auth.service';
+import { BrowserNotificationService } from './browser-notification.service';
+
 
 export interface SnackbarItem {
   id:         number;
@@ -27,9 +29,10 @@ const STATUS_LABELS: Record<DutyStatus, string> = {
 @Injectable({ providedIn: 'root' })
 export class DutyService implements OnDestroy {
   private readonly API = 'http://localhost:3000/api';
-  private notif = inject(NotificationService);
-  private sse   = inject(SseService);
-  private auth  = inject(AuthService);
+  private notif  = inject(NotificationService);
+  private sse    = inject(SseService);
+  private auth   = inject(AuthService);
+  private bnotif = inject(BrowserNotificationService);
 
   duties           = signal<Duty[]>([]);
   endorsedToMe     = signal<Duty[]>([]);
@@ -52,35 +55,47 @@ export class DutyService implements OnDestroy {
     // ── New duty created ──
     this.sse.on('duty_created', ({ payload, actor }) => {
       const exists = this.duties().find(d => d.id === payload.id);
-      if (!exists) {
-        this.duties.update(list => [payload, ...list]);
-      }
+      if (!exists) this.duties.update(list => [payload, ...list]);
+
       this.notif.show(`New request #${String(payload.id).padStart(4, '0')} by ${actor}`, 'info');
+      this.bnotif.notify(
+        '🔔 New Request',
+        `#${String(payload.id).padStart(4, '0')} — ${payload.data?.concern ?? ''} by ${actor}`,
+        `duty-created-${payload.id}`
+      );
     });
 
-    // ── Duty updated (status, details) ──
+    // ── Duty updated ──
     this.sse.on('duty_updated', ({ payload, actor }) => {
       this.duties.update(list => list.map(d => d.id === payload.id ? payload : d));
-      // If it was in endorsed list, update or remove it
       if (payload.status !== 'endorsed') {
         this.endorsedToMe.update(list => list.filter(d => d.id !== payload.id));
       }
       const label = STATUS_LABELS[payload.status as DutyStatus] ?? payload.status;
       this.notif.show(`#${String(payload.id).padStart(4, '0')} → ${label} by ${actor}`, 'info');
+      this.bnotif.notify(
+        '📋 Request Updated',
+        `#${String(payload.id).padStart(4, '0')} moved to ${label} by ${actor}`,
+        `duty-updated-${payload.id}-${Date.now()}`
+      );
     });
 
     // ── Duty endorsed ──
     this.sse.on('duty_endorsed', ({ payload, actor, endorsedTo }) => {
-      // Update the card in main board
       this.duties.update(list => list.map(d => d.id === payload.id ? payload : d));
 
-      // If this user is the endorsed recipient — add to their section
       if (endorsedTo === currentUserId()) {
         this.endorsedToMe.update(list => {
           const exists = list.find(d => d.id === payload.id);
           return exists ? list : [payload, ...list];
         });
         this.notif.show(`↪ Request #${String(payload.id).padStart(4, '0')} endorsed to you by ${actor}`, 'info');
+        // Only browser-notify the recipient
+        this.bnotif.notify(
+          '↪ Task Assigned to You',
+          `#${String(payload.id).padStart(4, '0')} — ${payload.data?.concern ?? ''} from ${actor}`,
+          `duty-endorsed-${payload.id}-${Date.now()}`
+        );
       } else {
         this.notif.show(`#${String(payload.id).padStart(4, '0')} endorsed by ${actor}`, 'info');
       }
@@ -97,6 +112,18 @@ export class DutyService implements OnDestroy {
     this.sse.on('duty_deleted', ({ payload }) => {
       this.duties.update(list => list.filter(d => d.id !== payload.id));
       this.endorsedToMe.update(list => list.filter(d => d.id !== payload.id));
+    });
+
+    this.sse.on('duty_followed_update', ({ payload, actor }) => {
+      this.duties.update(list => list.map(d => d.id === payload.id ? payload : d));
+      const label = STATUS_LABELS[payload.status as DutyStatus] ?? payload.status;
+    
+      // Only browser-notify — no toast (they already get the regular duty_updated toast)
+      this.bnotif.notify(
+        '👀 Followed Request Updated',
+        `#${String(payload.id).padStart(4, '0')} → ${label} by ${actor}`,
+        `duty-follow-${payload.id}-${Date.now()}`
+      );
     });
   }
 
@@ -132,11 +159,11 @@ export class DutyService implements OnDestroy {
   create(payload: CreateDutyPayload) {
     return this.http.post<Duty>(`${this.API}/duty-requests`, payload).pipe(
       tap(d => {
-        // No optimistic add — SSE handles it for everyone including self
         this.notif.show(`Request #${String(d.id).padStart(4, '0')} submitted`, 'success');
       })
     );
   }
+
   update(id: number, payload: UpdateDutyPayload) {
     return this.http.patch<Duty>(`${this.API}/duty-requests/${id}/details`, payload).pipe(
       tap(updated => {
@@ -149,7 +176,6 @@ export class DutyService implements OnDestroy {
   updateStatus(id: number, status: DutyStatus, joNumber?: string, joVerified?: boolean) {
     return this.http.patch<Duty>(`${this.API}/duty-requests/${id}`, { status, joNumber, joVerified }).pipe(
       tap(updated => {
-        // Optimistic update for self — SSE excluded actor
         this.duties.update(list => list.map(d => d.id === id ? updated : d));
         this.endorsedToMe.update(list => list.filter(d => d.id !== id));
         const label = STATUS_LABELS[status] ?? status;
@@ -164,7 +190,6 @@ export class DutyService implements OnDestroy {
     );
   }
 
-  // ── Endorsement ──
   endorse(id: number, endorsedToId: number) {
     return this.http.post<Duty>(`${this.API}/duty-requests/${id}/endorse`, { endorsedToId }).pipe(
       tap(updated => {
@@ -174,19 +199,12 @@ export class DutyService implements OnDestroy {
     );
   }
 
- fetchEndorsedToMe() {
+  fetchEndorsedToMe() {
     return this.http.get<Duty[]>(`${this.API}/duty-requests/endorsed-to-me`).pipe(
       tap(incoming => this.endorsedToMe.set(incoming))
     );
   }
 
-  fetchEndorsementCount() {
-    return this.http.get<{ count: number }>(`${this.API}/duty-requests/endorsement-count`).pipe(
-      tap(r => this.endorsementCount.set(r.count))
-    );
-  }
-
-  // ── Unendorse with undo ──
   unendorse(id: number) {
     const duty = this.endorsedToMe().find(d => d.id === id);
     if (!duty) return;
@@ -218,7 +236,6 @@ export class DutyService implements OnDestroy {
     this.notif.show('Endorsement restored', 'info');
   }
 
-  // ── Soft delete with undo ──
   deleteWithUndo(duty: Duty) {
     this.duties.update(list => list.filter(d => d.id !== duty.id));
     const snackId   = duty.id;

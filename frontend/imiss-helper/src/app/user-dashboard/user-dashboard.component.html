@@ -1,0 +1,220 @@
+<app-navbar (openModal)="modalOpen.set(true)" />
+
+<main class="dash-page">
+
+  <!-- ── HEADER ── -->
+  <div class="dash-header">
+    <h1 class="board-title">my dashboard</h1>
+    <div class="board-subtitle-row">
+      <span class="board-subtitle">// {{ currentUser()?.username }} · {{ currentUser()?.role }}</span>
+    </div>
+  </div>
+
+  <!-- ── STATS ── -->
+  @if (stats(); as s) {
+    <div class="dash-stats">
+      <div class="dash-stat">
+        <div class="dash-stat-num">{{ s.total }}</div>
+        <div class="dash-stat-label">Total</div>
+      </div>
+      <div class="dash-stat dash-stat-pending">
+        <div class="dash-stat-num">{{ s.pending }}</div>
+        <div class="dash-stat-label">Pending</div>
+      </div>
+      <div class="dash-stat dash-stat-progress">
+        <div class="dash-stat-num">{{ s.in_progress }}</div>
+        <div class="dash-stat-label">In Progress</div>
+      </div>
+      <div class="dash-stat dash-stat-done">
+        <div class="dash-stat-num">{{ s.done }}</div>
+        <div class="dash-stat-label">Done</div>
+      </div>
+      <div class="dash-stat dash-stat-endorsed">
+        <div class="dash-stat-num">{{ s.endorsed }}</div>
+        <div class="dash-stat-label">Endorsed</div>
+      </div>
+      <div class="dash-stat">
+        <div class="dash-stat-num">{{ s.with_jo }}</div>
+        <div class="dash-stat-label">With JO</div>
+      </div>
+      <div class="dash-stat">
+        <div class="dash-stat-num">{{ s.without_jo }}</div>
+        <div class="dash-stat-label">No JO</div>
+      </div>
+    </div>
+  }
+
+  <!-- ── FILTERS ── -->
+  <div class="dash-filters">
+
+    <mat-form-field appearance="outline" class="dash-field dash-field-search">
+      <mat-label>Search</mat-label>
+      <input matInput placeholder="Concern, dept, ID..."
+        [ngModel]="search()" (ngModelChange)="onSearch($event)" />
+      @if (search()) {
+        <button matSuffix mat-icon-button (click)="onSearch('')"
+          style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      } @else {
+        <span matSuffix style="display:flex;align-items:center;padding-right:4px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        </span>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="dash-field">
+      <mat-label>Status</mat-label>
+      <mat-select [ngModel]="status()" (ngModelChange)="setFilter('status', $event)">
+        @for (opt of statusOptions; track opt.value) {
+          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="dash-field">
+      <mat-label>Type</mat-label>
+      <mat-select [ngModel]="concernType()" (ngModelChange)="setFilter('concernType', $event)">
+        @for (opt of concernOptions; track opt.value) {
+          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="dash-field">
+      <mat-label>JO Status</mat-label>
+      <mat-select [ngModel]="joStatus()" (ngModelChange)="setFilter('joStatus', $event)">
+        @for (opt of joOptions; track opt.value) {
+          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="dash-field dash-field-date">
+      <mat-label>Date range</mat-label>
+      <mat-date-range-input [formGroup]="dateRange" [rangePicker]="picker">
+        <input matStartDate formControlName="start" placeholder="Start" />
+        <input matEndDate formControlName="end" placeholder="End" />
+      </mat-date-range-input>
+      <mat-datepicker-toggle matIconSuffix [for]="picker" />
+      <mat-date-range-picker #picker />
+    </mat-form-field>
+
+    @if (activeChips().length > 0) {
+      <button class="btn-clear-filters" (click)="clearAll()">Clear</button>
+    }
+  </div>
+
+  <!-- ── ACTIVE CHIPS ── -->
+  @if (activeChips().length > 0) {
+    <div class="dash-chips">
+      @for (chip of activeChips(); track chip.key) {
+        <div class="dash-chip">
+          {{ chip.label }}
+          <button class="dash-chip-remove" (click)="removeChip(chip.key)">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── TABLE ── -->
+  <div class="dash-table-wrap">
+    <table class="dash-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Department</th>
+          <th>Concern</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Last Activity</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading()) {
+          @for (s of [1,2,3,4,5]; track s) {
+            <tr>
+              @for (c of [1,2,3,4,5,6,7,8]; track c) {
+                <td><div class="skel-line" style="height:12px;width:80%"></div></td>
+              }
+            </tr>
+          }
+        } @else if (records().length === 0) {
+          <tr>
+            <td colspan="7" class="dash-empty">No records found</td>
+          </tr>
+        } @else {
+          @for (r of records(); track r.id) {
+            <tr>
+              <td class="dash-td-id">{{ formattedId(r.id) }}</td>
+              <td class="dash-td-dept">{{ r.department }}</td>
+              <td class="dash-td-concern" [title]="r.concern">{{ r.concern }}</td>
+              <td class="dash-td-type">
+                <span class="concern-tag concern-{{ r.concern_type }}">
+                  {{ concernLabel(r.concern_type) }}
+                </span>
+              </td>
+              <td class="dash-td-status">
+                <span class="status-badge"
+                  [style.background]="statusBg(r.status)"
+                  [style.color]="statusColor(r.status)">
+                  {{ r.status === 'in_progress' ? 'In Progress' : (r.status | titlecase) }}
+                </span>
+                <!-- JO badge inline with done status -->
+                @if (r.status === 'done') {
+                  @if (r.jo_number) {
+                    <span class="jo-inline-badge jo-inline-verified" title="Done with JO">
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                      JO
+                    </span>
+                  } @else {
+                    <span class="jo-inline-badge jo-inline-skipped" title="Done without JO">No JO</span>
+                  }
+                }
+              </td>
+              <td class="dash-td-activity">
+                @if (r.last_action) {
+                  <div class="last-activity-label">
+                    {{ lastActivityLabel(r) }}
+                  </div>
+                  <div class="last-activity-meta">
+                    {{ r.last_actor }} · {{ fmtDateTime(r.last_activity_at!) }}
+                  </div>
+                } @else {
+                  <span class="dash-empty-val">—</span>
+                }
+              </td>
+              <td class="dash-td-date">{{ fmtDateTime(r.created_at) }}</td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── PAGINATION ── -->
+  @if (pages() > 1) {
+    <div class="dash-pagination">
+      <span class="dash-page-info">
+        {{ (page() - 1) * LIMIT + 1 }}–{{ page() * LIMIT > total() ? total() : page() * LIMIT }} of {{ total() }}
+      </span>
+      <div class="dash-page-btns">
+        <button class="dash-page-btn" (click)="goTo(page() - 1)" [disabled]="page() === 1">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        @for (p of pageNumbers; track p) {
+          <button class="dash-page-btn" [class.active]="p === page()" (click)="goTo(p)">{{ p }}</button>
+        }
+        <button class="dash-page-btn" (click)="goTo(page() + 1)" [disabled]="page() === pages()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+    </div>
+  }
+
+</main>
+<app-add-duty-modal [(isOpen)]="modalOpen" />
+<app-snackbar />

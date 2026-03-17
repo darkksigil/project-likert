@@ -1,18 +1,21 @@
 // src/app/admin/dashboard/admin-dashboard.component.ts
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { AdminService } from '../../shared/services/admin.service';
 import { DutyService } from '../../shared/services/duty.service';
 import { AuthService } from '../../shared/services/auth.service';
+import { NavbarComponent } from '../../navbar/navbar.component';
 import { ROLE_LABELS, User, Department } from '../../shared/models/index';
+
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, NavbarComponent],
   templateUrl: './admin-dashboard.component.html',
+  encapsulation: ViewEncapsulation.None,
+  styleUrl: './admin-dashboard.component.css',
 })
 export class AdminDashboardComponent implements OnInit {
   private adminService = inject(AdminService);
@@ -32,13 +35,13 @@ export class AdminDashboardComponent implements OnInit {
   showUserForm  = false;
   editingUser: User | null = null;
   userForm = { username: '', password: '', full_name: '', role: 'hardware' };
-  userError = '';
+  userError   = '';
   userLoading = false;
 
   // ── Department form ──
   showDeptForm = false;
   deptForm = { code: '', name: '', grp: '' };
-  deptError = '';
+  deptError   = '';
   deptLoading = false;
 
   ngOnInit() {
@@ -47,26 +50,24 @@ export class AdminDashboardComponent implements OnInit {
     this.dutyService.fetchAll().subscribe();
   }
 
-  // ── Stats ──
-  get totalDuties()    { return this.duties().length; }
-  get pendingDuties()  { return this.dutyService.pending().length; }
-  get activeDuties()   { return this.dutyService.inProgress().length; }
-  get doneDuties()     { return this.dutyService.done().length; }
-  get activeUsers()    { return this.users().filter(u => u.is_active).length; }
-  get totalDepts()     { return this.departments().length; }
+  get totalDuties()  { return this.duties().length; }
+  get pendingDuties(){ return this.dutyService.pending().length; }
+  get activeDuties() { return this.dutyService.inProgress().length; }
+  get doneDuties()   { return this.dutyService.done().length; }
+  get activeUsers()  { return this.users().filter(u => u.is_active).length; }
+  get totalDepts()   { return this.departments().length; }
 
-  // ── User actions ──
   openCreateUser() {
-    this.editingUser = null;
-    this.userForm    = { username: '', password: '', full_name: '', role: 'hardware' };
-    this.userError   = '';
+    this.editingUser  = null;
+    this.userForm     = { username: '', password: '', full_name: '', role: 'hardware' };
+    this.userError    = '';
     this.showUserForm = true;
   }
 
   openEditUser(user: User) {
-    this.editingUser = user;
-    this.userForm    = { username: user.username, password: '', full_name: user.full_name, role: user.role };
-    this.userError   = '';
+    this.editingUser  = user;
+    this.userForm     = { username: user.username, password: '', full_name: user.full_name, role: user.role };
+    this.userError    = '';
     this.showUserForm = true;
   }
 
@@ -98,10 +99,9 @@ export class AdminDashboardComponent implements OnInit {
     this.adminService.deleteUser(user.id).subscribe();
   }
 
-  // ── Department actions ──
   openCreateDept() {
-    this.deptForm    = { code: '', name: '', grp: '' };
-    this.deptError   = '';
+    this.deptForm     = { code: '', name: '', grp: '' };
+    this.deptError    = '';
     this.showDeptForm = true;
   }
 

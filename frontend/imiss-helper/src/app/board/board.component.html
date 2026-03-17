@@ -52,7 +52,7 @@
         </div>
         <span class="endorsed-section-sub">Requests assigned to you for resolution</span>
       </div>
-      <div class="endorsed-cards-scroll">
+      <div class="board-endorsed">
         @for (duty of endorsedToMe(); track duty.id) {
           <div class="endorsed-card-wrap">
             <div class="endorsed-from-label">From: {{ duty.endorsed_by_name ?? 'Unknown' }}</div>

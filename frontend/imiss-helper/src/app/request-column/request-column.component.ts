@@ -1,5 +1,5 @@
 // src/app/request-column/request-column.component.ts
-import { Component, input } from '@angular/core';
+import { Component, input, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DutyCardComponent } from '../duty-card/duty-card.component';
 import { Duty, DutyStatus } from '../shared/models/index';
@@ -22,6 +22,8 @@ const COL_CONFIGS: Record<string, ColConfig> = {
   standalone: true,
   imports: [CommonModule, DutyCardComponent],
   templateUrl: './request-column.component.html',
+  encapsulation: ViewEncapsulation.None,
+  styleUrl: '../board/board.component.css',
 })
 export class RequestColumnComponent {
   // Inputs from board (dumb display — board is the brain)

@@ -1,5 +1,5 @@
 // src/app/duty-card/duty-card.component.ts
-import { Component, inject, input, signal, computed, HostListener } from '@angular/core';
+import { Component, inject, input, signal, computed, HostListener, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -13,6 +13,7 @@ import { AdminService } from '../shared/services/admin.service';
 import { Department } from '../shared/models/index';
 import { formatTimeAgo } from '../shared/pipes/time-ago.pipes';
 import { JoService, JOResult } from '../shared/services/jo.service';
+import { FollowService } from '../shared/services/follow.service';
 
 let _tick = signal(0);
 setInterval(() => _tick.update(v => v + 1), 60000);
@@ -22,6 +23,8 @@ setInterval(() => _tick.update(v => v + 1), 60000);
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './duty-card.component.html',
+  styleUrl: './duty-card.component.css',
+  encapsulation: ViewEncapsulation.None,
 })
 export class DutyCardComponent {
   duty = input.required<Duty>();
@@ -31,6 +34,7 @@ export class DutyCardComponent {
   private deptService  = inject(DepartmentService);
   private adminService = inject(AdminService);
   private joService    = inject(JoService);
+  private followService = inject(FollowService);
 
   isAdmin       = this.auth.isAdmin;
   menuOpen      = signal(false);
@@ -55,6 +59,9 @@ export class DutyCardComponent {
       u.is_active && u.id !== this.auth.currentUser()?.id
     )
   );
+
+  //Following status
+  isFollowing = computed(() => this.followService.isFollowing(this.duty().id));
 
   // ── Edit mode ──
   editing     = signal(false);
@@ -307,5 +314,8 @@ export class DutyCardComponent {
     return 'urgency-normal';
   });
 
+  toggleFollow() {
+    this.followService.toggle(this.duty().id).subscribe();
+  }
   
 }

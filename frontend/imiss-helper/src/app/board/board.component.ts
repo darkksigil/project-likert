@@ -1,5 +1,5 @@
 // src/app/board/board.component.ts
-import { Component, inject, OnInit, signal, computed, effect } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, effect, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NavbarComponent } from '../navbar/navbar.component';
@@ -18,9 +18,11 @@ import { ConcernType, CONCERN_TYPE_LABELS } from '../shared/models/index';
   imports: [
     CommonModule, FormsModule,
     NavbarComponent, AddDutyModalComponent,
-    DutyCardComponent, SnackbarComponent, RequestColumnComponent,
+    DutyCardComponent, SnackbarComponent,
   ],
   templateUrl: './board.component.html',
+  styleUrl: './board.component.css',
+  encapsulation: ViewEncapsulation.None,
 })
 export class BoardComponent implements OnInit {
   private dutyService = inject(DutyService);
@@ -109,7 +111,6 @@ export class BoardComponent implements OnInit {
   ngOnInit() {
     this.dutyService.fetchAll().subscribe();
     this.dutyService.fetchEndorsedToMe().subscribe();
-    this.dutyService.fetchEndorsementCount().subscribe();
     this.deptService.fetchDepartments().subscribe();
   }
 

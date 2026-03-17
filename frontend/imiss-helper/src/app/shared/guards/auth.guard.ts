@@ -18,3 +18,13 @@ export const adminGuard: CanActivateFn = () => {
   router.navigate(['/board']);
   return false;
 };
+
+export const nonAdminGuard: CanActivateFn = () => {
+  const auth   = inject(AuthService);
+  const router = inject(Router);
+  if (auth.isAdmin()) {
+    router.navigate(['/admin']);
+    return false;
+  }
+  return true;
+};

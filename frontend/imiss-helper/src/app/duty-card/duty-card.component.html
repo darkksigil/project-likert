@@ -66,7 +66,7 @@
 
   <div class="card">
 
-    <!-- Top actions: ⋮ menu + ✕ -->
+    <!-- Top actions -->
     <div class="card-top-actions">
       <div class="card-menu-wrap">
         <button class="btn-card-dots" (click)="toggleMenu()">
@@ -165,38 +165,31 @@
       }
     </div>
 
-    <!-- ── ENDORSE PICKER PANEL ── -->
+    <!-- ── ENDORSE PICKER (inline row) ── -->
     @if (endorseMode()) {
       <div class="endorse-panel">
-        <div class="endorse-panel-title">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17l6-5-6-5"/><path d="M21 12H9"/></svg>
-          Endorse To
-        </div>
-        <select class="endorse-select has-value"
-          [ngModel]="endorseToId()"
-          (ngModelChange)="endorseToId.set($event)">
-          <option value="" disabled>Select user...</option>
-          @for (user of otherUsers(); track user.id) {
-            <option [value]="user.id">
-              {{ user.full_name || user.username }} · {{ user.role }}
-            </option>
-          }
-        </select>
         <div class="endorse-actions">
-          <button class="btn-jo-cancel-link" (click)="cancelEndorse()">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            Cancel
-          </button>
+          <select class="endorse-select has-value"
+            [ngModel]="endorseToId()"
+            (ngModelChange)="endorseToId.set($event)">
+            <option value="" disabled>Endorse to...</option>
+            @for (user of otherUsers(); track user.id) {
+              <option [value]="user.id">
+                {{ user.full_name || user.username }} · {{ user.role }}
+              </option>
+            }
+          </select>
           <button class="btn-primary-action btn-primary-progress"
+            style="width:auto;padding:7px 12px;margin-top:0;flex-shrink:0"
             [disabled]="!endorseToId() || endorsing()"
             (click)="confirmEndorse()">
             @if (endorsing()) {
               <div class="spinner spinner-sm"></div>
             } @else {
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17l6-5-6-5"/><path d="M21 12H9"/></svg>
-              Confirm Endorse
+              Endorse
             }
           </button>
+          <button class="btn-jo-cancel-link" style="flex-shrink:0" (click)="cancelEndorse()">Cancel</button>
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 <nav class="navbar">
-  <div class="navbar-brand">
+  <div class="navbar-brand" routerLink="/board" style="cursor:pointer">
     <div class="brand-icon">⚡</div>
     <span class="brand-text">IMISS<span>Tracker</span></span>
   </div>
@@ -36,12 +36,27 @@
 
       @if (dropdownOpen()) {
         <div class="user-dropdown" (click)="$event.stopPropagation()">
+
+          <!-- Profile -->
           <button class="dropdown-item" (click)="openProfile()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
             </svg>
             Profile
           </button>
+
+          <!-- My Dashboard (non-admin only) -->
+          @if (!isAdmin()) {
+            <a class="dropdown-item" routerLink="/dashboard" (click)="dropdownOpen.set(false)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="4" rx="1"/>
+                <rect x="14" y="11" width="7" height="9" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
+              </svg>
+              My Dashboard
+            </a>
+          }
+
+          <!-- Settings -->
           <button class="dropdown-item" (click)="openSettings()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="3"/>
@@ -49,6 +64,8 @@
             </svg>
             Settings
           </button>
+
+          <!-- Admin Panel (admin only) -->
           @if (isAdmin()) {
             <a class="dropdown-item" routerLink="/admin" (click)="dropdownOpen.set(false)">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -58,7 +75,27 @@
               Admin Panel
             </a>
           }
+          @if (browserNotifsEnabled()) {
+            <div class="setting-row setting-row-sub">
+              <div class="setting-info">
+                <div class="setting-label setting-label-sm">Notify for concern types</div>
+                <div class="setting-sub">Only get notified for selected types</div>
+              </div>
+              <div class="notif-type-filters">
+                @for (opt of concernTypeOptions; track opt.value) {
+                  <label class="notif-type-chip" [class.active]="isNotifTypeEnabled(opt.value)">
+                    <input type="checkbox" [checked]="isNotifTypeEnabled(opt.value)"
+                      (change)="toggleNotifType(opt.value, $any($event.target).checked)" />
+                    {{ opt.label }}
+                  </label>
+                }
+              </div>
+            </div>
+          }
+
           <div class="dropdown-divider"></div>
+
+          <!-- Logout -->
           <button class="dropdown-item dropdown-item-danger" (click)="logout()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
@@ -136,6 +173,8 @@
         <button class="modal-close" (click)="settingsOpen.set(false)">✕</button>
       </div>
       <div class="modal-body">
+
+        <!-- Toast notifications -->
         <div class="setting-row">
           <div class="setting-info">
             <div class="setting-label">Toast notifications</div>
@@ -147,6 +186,31 @@
             <span class="toggle-track"><span class="toggle-thumb"></span></span>
           </label>
         </div>
+
+        <!-- Browser notifications -->
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Browser notifications</div>
+            <div class="setting-sub">
+              @if (notifPermission() === 'denied') {
+                Blocked by browser — enable in site settings
+              } @else if (notifPermission() === 'granted') {
+                OS-level popups even when tab is minimized
+              } @else {
+                Get OS popups for new requests and assignments
+              }
+            </div>
+          </div>
+          <label class="toggle-wrap">
+            <input type="checkbox"
+              [checked]="browserNotifsEnabled()"
+              [disabled]="notifPermission() === 'denied'"
+              (change)="toggleBrowserNotifs($any($event.target).checked)" />
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+        </div>
+
+        <!-- Dark mode -->
         <div class="setting-row">
           <div class="setting-info">
             <div class="setting-label">Dark mode</div>
@@ -158,6 +222,7 @@
             <span class="toggle-track"><span class="toggle-thumb"></span></span>
           </label>
         </div>
+
       </div>
       <div class="modal-footer">
         <button class="btn-submit" (click)="settingsOpen.set(false)">Done</button>

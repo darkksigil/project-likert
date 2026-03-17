@@ -1,6 +1,7 @@
 // src/services/dutyService.ts
 import { pool } from '../config/db';
 import { broadcast } from './sseService';
+import { notifyFollowers } from './followService';
 
 export async function getAllDuties() {
   const { rows } = await pool.query(
@@ -36,7 +37,7 @@ export async function updateDutyStatus(
     `SELECT status FROM duty_requests WHERE id = $1`, [id]
   );
   const fromStatus = current[0]?.status ?? '';
-
+ 
   const { rows } = await pool.query(
     `UPDATE duty_requests
      SET status      = $1,
@@ -46,22 +47,31 @@ export async function updateDutyStatus(
      WHERE id = $2 RETURNING *`,
     [status, id, joNumber ?? null, joVerified ?? null]
   );
-
+ 
   await pool.query(
     `INSERT INTO activity_log (duty_id, action, from_value, to_value, actor_id, actor_name, actor_role)
      VALUES ($1, 'status_change', $2, $3, $4, $5, $6)`,
     [id, fromStatus, status, actor.id, actor.username, actor.role]
   );
-
+ 
   const duty = rows[0];
-
+ 
+  // Broadcast to everyone except actor
   broadcast({
     type:      'duty_updated',
     payload:   duty,
     actor:     actor.username,
     actorRole: actor.role,
-  }, actor.id); // exclude the actor — they already updated optimistically
-
+  }, actor.id);
+ 
+  // Also notify followers via targeted SSE with follow flag
+  await notifyFollowers(id, actor.id, {
+    type:      'duty_followed_update',
+    payload:   duty,
+    actor:     actor.username,
+    actorRole: actor.role,
+  });
+ 
   return duty;
 }
 
