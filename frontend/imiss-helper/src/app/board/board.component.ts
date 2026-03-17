@@ -9,8 +9,8 @@ import { AuthService } from '../shared/services/auth.service';
 import { DepartmentService } from '../shared/services/department.service';
 import { DutyCardComponent } from '../duty-card/duty-card.component';
 import { SnackbarComponent } from '../snackbar/snackbar.component';
-import { RequestColumnComponent } from '../request-column/request-column.component';
 import { ConcernType, CONCERN_TYPE_LABELS } from '../shared/models/index';
+import { FollowService } from '../shared/services/follow.service';
 
 @Component({
   selector: 'app-board',
@@ -25,6 +25,7 @@ import { ConcernType, CONCERN_TYPE_LABELS } from '../shared/models/index';
   encapsulation: ViewEncapsulation.None,
 })
 export class BoardComponent implements OnInit {
+  private followService = inject(FollowService);
   private dutyService = inject(DutyService);
   private auth        = inject(AuthService);
   private deptService = inject(DepartmentService);
@@ -112,6 +113,7 @@ export class BoardComponent implements OnInit {
     this.dutyService.fetchAll().subscribe();
     this.dutyService.fetchEndorsedToMe().subscribe();
     this.deptService.fetchDepartments().subscribe();
+    this.followService.fetchFollowing().subscribe();
   }
 
   clearSearch() {

@@ -61,7 +61,8 @@ export class DutyService implements OnDestroy {
       this.bnotif.notify(
         '🔔 New Request',
         `#${String(payload.id).padStart(4, '0')} — ${payload.data?.concern ?? ''} by ${actor}`,
-        `duty-created-${payload.id}`
+        `duty-created-${payload.id}`,
+        payload.concern_type
       );
     });
 
@@ -76,7 +77,8 @@ export class DutyService implements OnDestroy {
       this.bnotif.notify(
         '📋 Request Updated',
         `#${String(payload.id).padStart(4, '0')} moved to ${label} by ${actor}`,
-        `duty-updated-${payload.id}-${Date.now()}`
+        `duty-updated-${payload.id}-${Date.now()}`,
+        payload.concern_type
       );
     });
 
@@ -94,7 +96,7 @@ export class DutyService implements OnDestroy {
         this.bnotif.notify(
           '↪ Task Assigned to You',
           `#${String(payload.id).padStart(4, '0')} — ${payload.data?.concern ?? ''} from ${actor}`,
-          `duty-endorsed-${payload.id}-${Date.now()}`
+          `duty-endorsed-${payload.id}-${Date.now()}`,payload.concern_type
         );
       } else {
         this.notif.show(`#${String(payload.id).padStart(4, '0')} endorsed by ${actor}`, 'info');
@@ -118,11 +120,13 @@ export class DutyService implements OnDestroy {
       this.duties.update(list => list.map(d => d.id === payload.id ? payload : d));
       const label = STATUS_LABELS[payload.status as DutyStatus] ?? payload.status;
     
-      // Only browser-notify — no toast (they already get the regular duty_updated toast)
+      // duty_followed_update — bypass filter since user explicitly followed
       this.bnotif.notify(
         '👀 Followed Request Updated',
         `#${String(payload.id).padStart(4, '0')} → ${label} by ${actor}`,
-        `duty-follow-${payload.id}-${Date.now()}`
+        `duty-follow-${payload.id}-${Date.now()}`,
+        payload.concern_type,
+        true  // ← bypass concern type filter
       );
     });
   }

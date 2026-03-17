@@ -10,6 +10,7 @@ import dutyRoutes       from '../src/routes/dutyRequests';
 import messengerRouter  from './routes/messengerWebhook';
 import joRoutes         from './routes/jo';
 import sseRoutes        from './routes/sse';
+import followRoutes from './routes/follow';
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use('/api', dutyRoutes);
 app.use('/api', messengerRouter);
 app.use('/api', joRoutes);
 app.use('/api', endorseRoutes);
+app.use('/api', followRoutes);
 
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   logger.error(err.message, { stack: err.stack });

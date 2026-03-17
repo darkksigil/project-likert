@@ -91,6 +91,15 @@
                 Activity Log
               }
             </button>
+            <button class="card-menu-item" (click)="toggleFollow(); menuOpen.set(false)">
+              @if (isFollowing()) {
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="#7C3AED" stroke="#7C3AED" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+                Unfollow
+              } @else {
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+                Follow
+              }
+            </button>
           </div>
         }
       </div>
@@ -112,12 +121,18 @@
         <span class="jo-badge jo-badge-verified" title="Done with Job Order">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
         </span>
-      } @else if (joBadge === 'skipped') {
+      }@if (joBadge === 'skipped') {
         <span class="jo-badge jo-badge-skipped" title="Done without Job Order">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </span>
-      }
-    </div>
+      }@if (isFollowing()) {
+          <span class="follow-badge" title="Following">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="#7C3AED" stroke="#7C3AED" stroke-width="1.5">
+              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/>
+            </svg>
+          </span>
+        }
+      </div>
 
     <div class="card-name">{{ displayName }}</div>
     @if (showDept) { <div class="card-dept">{{ duty().data.department }}</div> }

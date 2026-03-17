@@ -184,7 +184,7 @@
 
 .dash-table th:nth-child(1) { width: 80px; }   /* ID */
 .dash-table th:nth-child(2) { width: 120px; }  /* Department */
-.dash-table th:nth-child(3) { width: auto; }   /* Concern — takes remaining space */
+.dash-table th:nth-child(3) { width: 300px; }   /* Concern — takes remaining space */
 .dash-table th:nth-child(4) { width: 100px; }  /* Type */
 .dash-table th:nth-child(5) { width: 140px; }  /* Status */
 .dash-table th:nth-child(6) { width: 220px; }  /* Last Activity */

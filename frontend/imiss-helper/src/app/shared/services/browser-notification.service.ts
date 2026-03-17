@@ -28,9 +28,9 @@ export class BrowserNotificationService {
   disable() { localStorage.setItem(this.STORAGE_KEY, 'false'); }
 
   // concernType is optional — if provided, checks filter
-  notify(title: string, body: string, tag?: string, concernType?: string) {
+  notify(title: string, body: string, tag?: string, concernType?: string, bypassFilter = false) {
     if (!this.isEnabled) return;
-    if (concernType && !this.filter.shouldNotify(concernType)) return;
+    if (!bypassFilter && concernType && !this.filter.shouldNotify(concernType)) return;
     try {
       new Notification(title, {
         body,

@@ -75,24 +75,6 @@
               Admin Panel
             </a>
           }
-          @if (browserNotifsEnabled()) {
-            <div class="setting-row setting-row-sub">
-              <div class="setting-info">
-                <div class="setting-label setting-label-sm">Notify for concern types</div>
-                <div class="setting-sub">Only get notified for selected types</div>
-              </div>
-              <div class="notif-type-filters">
-                @for (opt of concernTypeOptions; track opt.value) {
-                  <label class="notif-type-chip" [class.active]="isNotifTypeEnabled(opt.value)">
-                    <input type="checkbox" [checked]="isNotifTypeEnabled(opt.value)"
-                      (change)="toggleNotifType(opt.value, $any($event.target).checked)" />
-                    {{ opt.label }}
-                  </label>
-                }
-              </div>
-            </div>
-          }
-
           <div class="dropdown-divider"></div>
 
           <!-- Logout -->
@@ -209,6 +191,26 @@
             <span class="toggle-track"><span class="toggle-thumb"></span></span>
           </label>
         </div>
+
+
+        <!-- Notification type filter (shown when browser notifs enabled) -->
+        @if (browserNotifsEnabled()) {
+          <div class="setting-row setting-row-sub">
+            <div class="setting-info">
+              <div class="setting-label setting-label-sm">Notify for concern types</div>
+              <div class="setting-sub">Only get notified for selected types</div>
+            </div>
+            <div class="notif-type-filters">
+              @for (opt of concernTypeOptions; track opt.value) {
+                <label class="notif-type-chip" [class.active]="isNotifTypeEnabled(opt.value)">
+                  <input type="checkbox" [checked]="isNotifTypeEnabled(opt.value)"
+                    (change)="toggleNotifType(opt.value, $any($event.target).checked)" />
+                  {{ opt.label }}
+                </label>
+              }
+            </div>
+          </div>
+        }
 
         <!-- Dark mode -->
         <div class="setting-row">
